@@ -23,7 +23,7 @@ class WP_Child_Theme_Generator {
     /**
      * Generate a child theme
      *
-     * @param string $parent_theme Parent theme slug
+     * @param string|array $parent_theme Parent theme slug or array of params
      * @param string $child_name Child theme name
      * @param string $child_desc Child theme description
      * @param string $child_author Child theme author
@@ -32,7 +32,19 @@ class WP_Child_Theme_Generator {
      * @param array $selected_files Files to copy from parent theme
      * @return string|WP_Error Child theme slug or error
      */
-    public function generate_child_theme($parent_theme, $child_name, $child_desc = '', $child_author = '', $child_version = '1.0.0', $copy_settings = false, $selected_files = array()) {
+    public function generate_child_theme($parent_theme, $child_name = '', $child_desc = '', $child_author = '', $child_version = '1.0.0', $copy_settings = false, $selected_files = array()) {
+        // Handle array input (from AJAX call)
+        if (is_array($parent_theme)) {
+            $args = $parent_theme;
+            $parent_theme = isset($args['parent_theme']) ? $args['parent_theme'] : '';
+            $child_name = isset($args['child_name']) ? $args['child_name'] : '';
+            $child_desc = isset($args['child_desc']) ? $args['child_desc'] : '';
+            $child_author = isset($args['child_author']) ? $args['child_author'] : '';
+            $child_version = isset($args['child_version']) ? $args['child_version'] : '1.0.0';
+            $copy_settings = isset($args['copy_settings']) ? (bool) $args['copy_settings'] : false;
+            $selected_files = isset($args['selected_files']) ? $args['selected_files'] : array();
+        }
+        
         // Validate parent theme
         $themes = wp_get_themes();
         if (!isset($themes[$parent_theme])) {
@@ -53,13 +65,24 @@ class WP_Child_Theme_Generator {
         // Set child theme directory
         $themes_dir = get_theme_root();
         $child_dir = trailingslashit($themes_dir) . $child_slug;
+        $parent_dir = trailingslashit($themes_dir) . $parent_theme;
+        
+        // Use WordPress filesystem API
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
         
         // Create child theme directory
-        if (!wp_mkdir_p($child_dir)) {
+        if (!$wp_filesystem->mkdir($child_dir)) {
+            error_log('WP Child Theme Pro: Failed to create directory at ' . $child_dir);
             return new WP_Error('mkdir_failed', __('Failed to create child theme directory.', 'wp-child-theme-pro'));
         }
         
-        // Create style.css
+        // Create style.css with proper content
         $css_content = "/*\n";
         $css_content .= "Theme Name: " . $child_name . "\n";
         $css_content .= "Theme URI: \n";
@@ -76,13 +99,14 @@ class WP_Child_Theme_Generator {
         $css_content .= "------------------------------------------------------------ */\n";
         
         $style_css = trailingslashit($child_dir) . 'style.css';
-        if (!file_put_contents($style_css, $css_content)) {
+        if (!$wp_filesystem->put_contents($style_css, $css_content, FS_CHMOD_FILE)) {
+            error_log('WP Child Theme Pro: Failed to write to file ' . $style_css);
             // Clean up
             $this->delete_theme($child_slug);
             return new WP_Error('css_failed', __('Failed to create style.css.', 'wp-child-theme-pro'));
         }
         
-        // Create functions.php
+        // Create a basic functions.php for all themes
         $functions_content = "<?php\n";
         $functions_content .= "/**\n";
         $functions_content .= " * " . $child_name . " functions and definitions\n";
@@ -90,41 +114,118 @@ class WP_Child_Theme_Generator {
         $functions_content .= " * \n";
         $functions_content .= " * @package " . str_replace(' ', '_', $child_name) . "\n";
         $functions_content .= " */\n\n";
+        
+        // Add code to enqueue parent theme styles
         $functions_content .= "/**\n";
         $functions_content .= " * Enqueue parent theme styles and child theme CSS\n";
         $functions_content .= " */\n";
         $functions_content .= "function " . str_replace('-', '_', $child_slug) . "_enqueue_styles() {\n";
+        $functions_content .= "    // Enqueue parent style\n";
         $functions_content .= "    wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');\n";
+        $functions_content .= "    // Enqueue child style\n";
         $functions_content .= "    wp_enqueue_style('child-style',\n";
         $functions_content .= "        get_stylesheet_directory_uri() . '/style.css',\n";
         $functions_content .= "        array('parent-style'),\n";
         $functions_content .= "        wp_get_theme()->get('Version')\n";
         $functions_content .= "    );\n";
+        $functions_content .= "    // Enqueue custom CSS if option enabled\n";
+        $functions_content .= "    wp_enqueue_style('mytheme-custom-css',\n";
+        $functions_content .= "        get_stylesheet_directory_uri() . '/assets/css/mytheme.css',\n";
+        $functions_content .= "        array('child-style'),\n";
+        $functions_content .= "        wp_get_theme()->get('Version')\n";
+        $functions_content .= "    );\n";
         $functions_content .= "}\n";
         $functions_content .= "add_action('wp_enqueue_scripts', '" . str_replace('-', '_', $child_slug) . "_enqueue_styles');\n\n";
         
-        // Add custom JS enqueue if needed
+        // Add JS enqueue function
         $functions_content .= "/**\n";
         $functions_content .= " * Enqueue child theme scripts\n";
         $functions_content .= " */\n";
         $functions_content .= "function " . str_replace('-', '_', $child_slug) . "_enqueue_scripts() {\n";
-        $functions_content .= "    // Enqueue custom JS if it exists\n";
-        $functions_content .= "    if (file_exists(get_stylesheet_directory() . '/js/custom.js')) {\n";
-        $functions_content .= "        wp_enqueue_script('child-custom-script',\n";
-        $functions_content .= "            get_stylesheet_directory_uri() . '/js/custom.js',\n";
-        $functions_content .= "            array('jquery'),\n";
-        $functions_content .= "            wp_get_theme()->get('Version'),\n";
-        $functions_content .= "            true\n";
-        $functions_content .= "        );\n";
-        $functions_content .= "    }\n";
+        $functions_content .= "    // Enqueue custom JS\n";
+        $functions_content .= "    wp_enqueue_script('mytheme-custom-script',\n";
+        $functions_content .= "        get_stylesheet_directory_uri() . '/assets/js/mytheme.js',\n";
+        $functions_content .= "        array('jquery'),\n";
+        $functions_content .= "        wp_get_theme()->get('Version'),\n";
+        $functions_content .= "        true\n";
+        $functions_content .= "    );\n";
         $functions_content .= "}\n";
         $functions_content .= "add_action('wp_enqueue_scripts', '" . str_replace('-', '_', $child_slug) . "_enqueue_scripts');\n\n";
         
-        // Add more custom functionality
-        $functions_content .= "// Add any custom functions below this line\n";
+        // Add custom CSS to head
+        $functions_content .= "/**\n";
+        $functions_content .= " * Add custom CSS to head\n";
+        $functions_content .= " */\n";
+        $functions_content .= "function " . str_replace('-', '_', $child_slug) . "_custom_css() {\n";
+        $functions_content .= "    // Get custom CSS option from theme mods\n";
+        $functions_content .= "    \$custom_css = get_theme_mod('" . $child_slug . "_custom_css', '');\n";
+        $functions_content .= "    if (!empty(\$custom_css)) {\n";
+        $functions_content .= "        echo '<style type=\"text/css\">' . wp_strip_all_tags(\$custom_css) . '</style>';\n";
+        $functions_content .= "    }\n";
+        $functions_content .= "}\n";
+        $functions_content .= "add_action('wp_head', '" . str_replace('-', '_', $child_slug) . "_custom_css', 100);\n\n";
+        
+        // Add custom JS to footer
+        $functions_content .= "/**\n";
+        $functions_content .= " * Add custom JS to footer\n";
+        $functions_content .= " */\n";
+        $functions_content .= "function " . str_replace('-', '_', $child_slug) . "_custom_js() {\n";
+        $functions_content .= "    // Get custom JS option from theme mods\n";
+        $functions_content .= "    \$custom_js = get_theme_mod('" . $child_slug . "_custom_js', '');\n";
+        $functions_content .= "    if (!empty(\$custom_js)) {\n";
+        $functions_content .= "        echo '<script type=\"text/javascript\">' . \$custom_js . '</script>';\n";
+        $functions_content .= "    }\n";
+        $functions_content .= "}\n";
+        $functions_content .= "add_action('wp_footer', '" . str_replace('-', '_', $child_slug) . "_custom_js', 100);\n\n";
+        
+        // Add customizer options for custom CSS and JS
+        $functions_content .= "/**\n";
+        $functions_content .= " * Add customizer options for custom CSS and JS\n";
+        $functions_content .= " */\n";
+        $functions_content .= "function " . str_replace('-', '_', $child_slug) . "_customizer_options(\$wp_customize) {\n";
+        $functions_content .= "    // Add section for custom code\n";
+        $functions_content .= "    \$wp_customize->add_section('" . $child_slug . "_custom_code', array(\n";
+        $functions_content .= "        'title'    => __('Custom CSS & JS', '" . $child_slug . "'),\n";
+        $functions_content .= "        'priority' => 200,\n";
+        $functions_content .= "    ));\n\n";
+        
+        $functions_content .= "    // Add custom CSS setting\n";
+        $functions_content .= "    \$wp_customize->add_setting('" . $child_slug . "_custom_css', array(\n";
+        $functions_content .= "        'default'           => '',\n";
+        $functions_content .= "        'sanitize_callback' => 'wp_strip_all_tags',\n";
+        $functions_content .= "        'type'              => 'theme_mod',\n";
+        $functions_content .= "    ));\n\n";
+        
+        $functions_content .= "    // Add custom CSS control\n";
+        $functions_content .= "    \$wp_customize->add_control('" . $child_slug . "_custom_css', array(\n";
+        $functions_content .= "        'label'       => __('Custom CSS', '" . $child_slug . "'),\n";
+        $functions_content .= "        'description' => __('Add custom CSS here. Do not include style tags.', '" . $child_slug . "'),\n";
+        $functions_content .= "        'section'     => '" . $child_slug . "_custom_code',\n";
+        $functions_content .= "        'type'        => 'textarea',\n";
+        $functions_content .= "    ));\n\n";
+        
+        $functions_content .= "    // Add custom JS setting\n";
+        $functions_content .= "    \$wp_customize->add_setting('" . $child_slug . "_custom_js', array(\n";
+        $functions_content .= "        'default'           => '',\n";
+        $functions_content .= "        'type'              => 'theme_mod',\n";
+        $functions_content .= "    ));\n\n";
+        
+        $functions_content .= "    // Add custom JS control\n";
+        $functions_content .= "    \$wp_customize->add_control('" . $child_slug . "_custom_js', array(\n";
+        $functions_content .= "        'label'       => __('Custom JavaScript', '" . $child_slug . "'),\n";
+        $functions_content .= "        'description' => __('Add custom JavaScript here. Do not include script tags.', '" . $child_slug . "'),\n";
+        $functions_content .= "        'section'     => '" . $child_slug . "_custom_code',\n";
+        $functions_content .= "        'type'        => 'textarea',\n";
+        $functions_content .= "    ));\n";
+        $functions_content .= "}\n";
+        $functions_content .= "add_action('customize_register', '" . str_replace('-', '_', $child_slug) . "_customizer_options');\n\n";
+        
+        // Add any custom child theme functionality here
+        $functions_content .= "// Add any custom functions below this line\n\n";
         
         $functions_php = trailingslashit($child_dir) . 'functions.php';
-        if (!file_put_contents($functions_php, $functions_content)) {
+        if (!$wp_filesystem->put_contents($functions_php, $functions_content, FS_CHMOD_FILE)) {
+            error_log('WP Child Theme Pro: Failed to write to file ' . $functions_php);
             // Clean up
             $this->delete_theme($child_slug);
             return new WP_Error('functions_failed', __('Failed to create functions.php.', 'wp-child-theme-pro'));
@@ -133,13 +234,19 @@ class WP_Child_Theme_Generator {
         // Create screenshot.png
         $this->create_screenshot($parent_theme, $child_dir);
         
-        // Create JS directory and file
-        $js_dir = trailingslashit($child_dir) . 'js';
-        if (!wp_mkdir_p($js_dir)) {
-            // Not fatal, continue
-            error_log('Failed to create JS directory in child theme.');
+        // Create assets directory structure
+        $assets_dir = trailingslashit($child_dir) . 'assets';
+        $js_dir = trailingslashit($assets_dir) . 'js';
+        $css_dir = trailingslashit($assets_dir) . 'css';
+        
+        if (!$wp_filesystem->mkdir($assets_dir)) {
+            error_log('WP Child Theme Pro: Failed to create assets directory');
+        }
+        
+        if (!$wp_filesystem->mkdir($js_dir)) {
+            error_log('WP Child Theme Pro: Failed to create js directory');
         } else {
-            // Create custom.js
+            // Create mytheme.js
             $js_content = "/**\n";
             $js_content .= " * Custom JS for " . $child_name . "\n";
             $js_content .= " * Generated by WP Child Theme Pro\n";
@@ -149,16 +256,22 @@ class WP_Child_Theme_Generator {
             $js_content .= "    console.log('Child theme custom JS loaded');\n";
             $js_content .= "});\n";
             
-            $custom_js = trailingslashit($js_dir) . 'custom.js';
-            file_put_contents($custom_js, $js_content);
+            $mytheme_js = trailingslashit($js_dir) . 'mytheme.js';
+            $wp_filesystem->put_contents($mytheme_js, $js_content, FS_CHMOD_FILE);
         }
         
-        // Copy selected files from parent theme
-        if (!empty($selected_files) && is_array($selected_files)) {
-            $parent_dir = get_theme_root() . '/' . $parent_theme;
-            foreach ($selected_files as $file) {
-                $this->copy_parent_file($parent_dir, $child_dir, $file);
-            }
+        if (!$wp_filesystem->mkdir($css_dir)) {
+            error_log('WP Child Theme Pro: Failed to create css directory');
+        } else {
+            // Create mytheme.css
+            $mytheme_css_content = "/**\n";
+            $mytheme_css_content .= " * Custom CSS for " . $child_name . "\n";
+            $mytheme_css_content .= " * Generated by WP Child Theme Pro\n";
+            $mytheme_css_content .= " */\n\n";
+            $mytheme_css_content .= "/* Add your custom CSS rules here */\n";
+            
+            $mytheme_css = trailingslashit($css_dir) . 'mytheme.css';
+            $wp_filesystem->put_contents($mytheme_css, $mytheme_css_content, FS_CHMOD_FILE);
         }
         
         // Copy parent theme settings if enabled
@@ -177,23 +290,31 @@ class WP_Child_Theme_Generator {
      * @param string $file File path relative to theme root
      */
     private function copy_parent_file($parent_dir, $child_dir, $file) {
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem if not already done
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
         $file = sanitize_file_name($file);
         $source = trailingslashit($parent_dir) . $file;
         $destination = trailingslashit($child_dir) . $file;
         
         // Skip if source doesn't exist
-        if (!file_exists($source)) {
+        if (!$wp_filesystem->exists($source)) {
             return;
         }
         
         // Create directory if needed
         $destination_dir = dirname($destination);
-        if (!is_dir($destination_dir)) {
-            wp_mkdir_p($destination_dir);
+        if (!$wp_filesystem->is_dir($destination_dir)) {
+            $wp_filesystem->mkdir($destination_dir, FS_CHMOD_DIR);
         }
         
         // Copy file
-        copy($source, $destination);
+        $wp_filesystem->copy($source, $destination, true, FS_CHMOD_FILE);
     }
 
     /**
@@ -219,12 +340,20 @@ class WP_Child_Theme_Generator {
      * @param string $child_dir Child theme directory
      */
     private function create_screenshot($parent_theme, $child_dir) {
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem if not already done
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
         // Check if parent theme has screenshot
         $parent_screenshot = get_theme_root() . '/' . $parent_theme . '/screenshot.png';
         
-        if (file_exists($parent_screenshot)) {
+        if ($wp_filesystem->exists($parent_screenshot)) {
             // Copy parent screenshot
-            copy($parent_screenshot, trailingslashit($child_dir) . 'screenshot.png');
+            $wp_filesystem->copy($parent_screenshot, trailingslashit($child_dir) . 'screenshot.png', true, FS_CHMOD_FILE);
         } else {
             // Create default screenshot
             $this->create_default_screenshot($child_dir);
@@ -237,35 +366,50 @@ class WP_Child_Theme_Generator {
      * @param string $child_dir Child theme directory
      */
     private function create_default_screenshot($child_dir) {
-        // Use GD to create a simple screenshot
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem if not already done
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
+        // Use default screenshot from plugin
+        $default_screenshot = WPCHILD_PLUGIN_DIR . 'admin/images/default-screenshot.png';
+        
+        if ($wp_filesystem->exists($default_screenshot)) {
+            $wp_filesystem->copy($default_screenshot, trailingslashit($child_dir) . 'screenshot.png', true, FS_CHMOD_FILE);
+        } else {
+            // Create a blank screenshot if default doesn't exist
+            $this->create_blank_screenshot($child_dir);
+        }
+    }
+    
+    /**
+     * Create a blank screenshot
+     *
+     * @param string $child_dir Child theme directory
+     */
+    private function create_blank_screenshot($child_dir) {
+        // Only attempt if GD is available
         if (function_exists('imagecreatetruecolor')) {
-            $image = imagecreatetruecolor(1200, 900);
-            $bg_color = imagecolorallocate($image, 240, 240, 240);
-            $text_color = imagecolorallocate($image, 51, 51, 51);
+            $img = imagecreatetruecolor(1200, 900);
+            $bg_color = imagecolorallocate($img, 240, 240, 240);
+            $text_color = imagecolorallocate($img, 50, 50, 50);
             
-            imagefill($image, 0, 0, $bg_color);
+            imagefill($img, 0, 0, $bg_color);
             
-            // Add text if GD with FreeType is available
-            if (function_exists('imagettftext')) {
-                $font = WPCHILD_PLUGIN_DIR . 'includes/assets/OpenSans-Regular.ttf';
-                
-                if (file_exists($font)) {
-                    imagettftext($image, 40, 0, 100, 400, $text_color, $font, 'Child Theme');
-                    imagettftext($image, 20, 0, 100, 450, $text_color, $font, 'Generated by WP Child Theme Pro');
-                } else {
-                    // Fallback to basic text
-                    imagestring($image, 5, 100, 400, 'Child Theme', $text_color);
-                    imagestring($image, 3, 100, 450, 'Generated by WP Child Theme Pro', $text_color);
-                }
+            // Add text
+            $text = 'WP Child Theme Pro';
+            if (function_exists('imagettftext') && file_exists(WPCHILD_PLUGIN_DIR . 'admin/fonts/OpenSans-Regular.ttf')) {
+                imagettftext($img, 40, 0, 100, 400, $text_color, WPCHILD_PLUGIN_DIR . 'admin/fonts/OpenSans-Regular.ttf', $text);
             } else {
-                // Fallback to basic text
-                imagestring($image, 5, 100, 400, 'Child Theme', $text_color);
-                imagestring($image, 3, 100, 450, 'Generated by WP Child Theme Pro', $text_color);
+                imagestring($img, 5, 100, 400, $text, $text_color);
             }
             
-            // Save as PNG
-            imagepng($image, trailingslashit($child_dir) . 'screenshot.png');
-            imagedestroy($image);
+            // Save the image
+            imagepng($img, trailingslashit($child_dir) . 'screenshot.png');
+            imagedestroy($img);
         }
     }
 
@@ -345,5 +489,185 @@ class WP_Child_Theme_Generator {
         }
         
         return $results;
+    }
+
+    /**
+     * Check if parent theme has includes directory with specific structure
+     *
+     * @param string $parent_dir Parent theme directory
+     * @return bool Whether the parent theme has the includes directory with specific structure
+     */
+    private function check_for_includes_structure($parent_dir) {
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem if not already done
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
+        // Check if parent theme has includes directory with admin-functions.php file
+        if ($wp_filesystem->exists($parent_dir . '/includes/admin-functions.php')) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Copy includes directory from parent theme to child theme
+     *
+     * @param string $parent_dir Parent theme directory
+     * @param string $child_dir Child theme directory
+     */
+    private function copy_includes_directory($parent_dir, $child_dir) {
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem if not already done
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
+        // Create includes directory
+        $wp_filesystem->mkdir($child_dir . '/includes');
+        
+        // Copy important include files
+        $important_includes = [
+            '/includes/admin-functions.php',
+            '/includes/settings-functions.php',
+            '/includes/elementor-functions.php',
+            '/includes/customizer-functions.php'
+        ];
+        
+        foreach ($important_includes as $include_file) {
+            if ($wp_filesystem->exists($parent_dir . $include_file)) {
+                $wp_filesystem->copy($parent_dir . $include_file, $child_dir . $include_file, true, FS_CHMOD_FILE);
+            }
+        }
+    }
+
+    /**
+     * For Hello Elementor theme, create a special functions.php
+     * 
+     * @param string $parent_dir Parent theme directory
+     * @param string $child_dir Child theme directory
+     * @param string $child_slug Child theme slug
+     * @return bool Whether the file was created successfully
+     */
+    private function create_hello_elementor_functions($parent_dir, $child_dir, $child_slug) {
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem if not already done
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
+        // Create includes directory
+        $includes_dir = trailingslashit($child_dir) . 'includes';
+        $wp_filesystem->mkdir($includes_dir);
+        
+        // Copy important include files from parent theme
+        $include_files = array(
+            'admin-functions.php',
+            'settings-functions.php',
+            'elementor-functions.php',
+            'customizer-functions.php'
+        );
+        
+        foreach ($include_files as $include_file) {
+            $source = trailingslashit($parent_dir) . 'includes/' . $include_file;
+            $destination = trailingslashit($includes_dir) . $include_file;
+            
+            if ($wp_filesystem->exists($source)) {
+                $wp_filesystem->copy($source, $destination, true, FS_CHMOD_FILE);
+            }
+        }
+        
+        // Add special handling for Hello Elementor functions
+        $functions_content = "<?php\n";
+        $functions_content .= "/**\n";
+        $functions_content .= " * Theme functions and definitions\n";
+        $functions_content .= " *\n";
+        $functions_content .= " * @package Hello Elementor Child\n";
+        $functions_content .= " */\n\n";
+        
+        $functions_content .= "// Exit if accessed directly\n";
+        $functions_content .= "if ( ! defined( 'ABSPATH' ) ) {\n";
+        $functions_content .= "\texit; // Exit if accessed directly.\n";
+        $functions_content .= "}\n\n";
+        
+        // Define content width
+        $functions_content .= "if ( ! isset( \$content_width ) ) {\n";
+        $functions_content .= "\t\$content_width = 800; // Pixels.\n";
+        $functions_content .= "}\n\n";
+        
+        // Define theme version (from parent)
+        $functions_content .= "define( 'HELLO_ELEMENTOR_VERSION', '3.1.1' );\n\n";
+        
+        // Enqueue styles
+        $functions_content .= "/**\n";
+        $functions_content .= " * Enqueue parent theme styles and child theme CSS\n";
+        $functions_content .= " */\n";
+        $functions_content .= "function " . str_replace('-', '_', $child_slug) . "_enqueue_styles() {\n";
+        $functions_content .= "\t// Enqueue parent style\n";
+        $functions_content .= "\twp_enqueue_style('hello-elementor', get_template_directory_uri() . '/style.min.css');\n";
+        $functions_content .= "\twp_enqueue_style('hello-elementor-theme-style', get_template_directory_uri() . '/theme.min.css');\n";
+        $functions_content .= "\t// Enqueue child style\n";
+        $functions_content .= "\twp_enqueue_style('hello-elementor-child', get_stylesheet_directory_uri() . '/style.css', array('hello-elementor'), wp_get_theme()->get('Version'));\n";
+        $functions_content .= "}\n";
+        $functions_content .= "add_action('wp_enqueue_scripts', '" . str_replace('-', '_', $child_slug) . "_enqueue_styles', 20);\n\n";
+        
+        // Add custom JS enqueue
+        $functions_content .= "/**\n";
+        $functions_content .= " * Enqueue child theme scripts\n";
+        $functions_content .= " */\n";
+        $functions_content .= "function " . str_replace('-', '_', $child_slug) . "_enqueue_scripts() {\n";
+        $functions_content .= "\t// Enqueue custom JS if it exists\n";
+        $functions_content .= "\tif (file_exists(get_stylesheet_directory() . '/js/custom.js')) {\n";
+        $functions_content .= "\t\twp_enqueue_script('child-custom-script',\n";
+        $functions_content .= "\t\t\tget_stylesheet_directory_uri() . '/js/custom.js',\n";
+        $functions_content .= "\t\t\tarray('jquery'),\n";
+        $functions_content .= "\t\t\twp_get_theme()->get('Version'),\n";
+        $functions_content .= "\t\t\ttrue\n";
+        $functions_content .= "\t\t);\n";
+        $functions_content .= "\t}\n";
+        $functions_content .= "}\n";
+        $functions_content .= "add_action('wp_enqueue_scripts', '" . str_replace('-', '_', $child_slug) . "_enqueue_scripts');\n\n";
+        
+        // Include admin functions
+        $functions_content .= "// Admin notice\n";
+        $functions_content .= "if ( is_admin() ) {\n";
+        $functions_content .= "\trequire get_stylesheet_directory() . '/includes/admin-functions.php';\n";
+        $functions_content .= "}\n\n";
+        
+        // Include other important files
+        $functions_content .= "// Settings page\n";
+        $functions_content .= "require get_stylesheet_directory() . '/includes/settings-functions.php';\n\n";
+        
+        $functions_content .= "// Header & footer styling option, inside Elementor\n";
+        $functions_content .= "require get_stylesheet_directory() . '/includes/elementor-functions.php';\n\n";
+        
+        // Customizer functions
+        $functions_content .= "if ( ! function_exists( 'hello_elementor_customizer' ) ) {\n";
+        $functions_content .= "\t// Customizer controls\n";
+        $functions_content .= "\tfunction hello_elementor_customizer() {\n";
+        $functions_content .= "\t\tif ( ! is_customize_preview() ) {\n";
+        $functions_content .= "\t\t\treturn;\n";
+        $functions_content .= "\t\t}\n\n";
+        $functions_content .= "\t\tif ( ! hello_elementor_display_header_footer() ) {\n";
+        $functions_content .= "\t\t\treturn;\n";
+        $functions_content .= "\t\t}\n\n";
+        $functions_content .= "\t\trequire get_stylesheet_directory() . '/includes/customizer-functions.php';\n";
+        $functions_content .= "\t}\n";
+        $functions_content .= "}\n";
+        $functions_content .= "add_action( 'init', 'hello_elementor_customizer' );\n\n";
+        
+        // Add any custom functions below this line
+        $functions_content .= "// Add your custom functions below this line\n";
+        
+        $functions_php = trailingslashit($child_dir) . 'functions.php';
+        return $wp_filesystem->put_contents($functions_php, $functions_content, FS_CHMOD_FILE);
     }
 }
