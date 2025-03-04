@@ -32,47 +32,68 @@ if (!defined('ABSPATH')) {
                         <table class="form-table">
                             <tr>
                                 <th scope="row">
-                                    <label for="parent-theme"><?php _e('Parent Theme', 'wp-child-theme-pro'); ?></label>
+                                    <label for="parent_theme"><?php _e('Parent Theme', 'wp-child-theme-pro'); ?></label>
                                 </th>
                                 <td>
-                                    <select id="parent-theme" name="parent_theme" required>
+                                    <select name="parent_theme" id="parent_theme" class="regular-text" required>
                                         <option value=""><?php _e('-- Select Parent Theme --', 'wp-child-theme-pro'); ?></option>
-                                        <?php foreach ($parent_themes as $theme_slug => $theme) : ?>
-                                            <option value="<?php echo esc_attr($theme_slug); ?>"><?php echo esc_html($theme->get('Name')); ?></option>
-                                        <?php endforeach; ?>
+                                        <?php
+                                        // Get current theme
+                                        $current_theme = wp_get_theme();
+                                        $current_theme_slug = $current_theme->get_stylesheet();
+                                        
+                                        // Get available themes
+                                        $themes = wp_get_themes();
+                                        
+                                        foreach ($themes as $theme_slug => $theme) {
+                                            // Skip child themes
+                                            if ($theme->parent()) {
+                                                continue;
+                                            }
+                                            
+                                            // Check if this is the current active theme
+                                            $selected = ($theme_slug === $current_theme_slug) ? 'selected="selected"' : '';
+                                            
+                                            echo '<option value="' . esc_attr($theme_slug) . '" ' . $selected . '>' . esc_html($theme->get('Name')) . '</option>';
+                                        }
+                                        ?>
                                     </select>
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label for="child-name"><?php _e('Child Theme Name', 'wp-child-theme-pro'); ?></label>
+                                    <label for="child_name"><?php _e('Child Theme Name', 'wp-child-theme-pro'); ?></label>
                                 </th>
                                 <td>
-                                    <input type="text" id="child-name" name="child_name" class="regular-text" required>
+                                    <input type="text" id="child_name" name="child_name" class="regular-text" required 
+                                           value="<?php echo esc_attr($current_theme->get('Name') . ' Child'); ?>">
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label for="child-desc"><?php _e('Description', 'wp-child-theme-pro'); ?></label>
+                                    <label for="child_desc"><?php _e('Description', 'wp-child-theme-pro'); ?></label>
                                 </th>
                                 <td>
-                                    <textarea id="child-desc" name="child_desc" class="large-text" rows="3"></textarea>
+                                    <textarea id="child_desc" name="child_desc" class="large-text" rows="3"><?php 
+                                        echo sprintf(esc_textarea(__('A child theme of the %s theme', 'wp-child-theme-pro')), 
+                                                 $current_theme->get('Name')); 
+                                    ?></textarea>
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label for="child-author"><?php _e('Author', 'wp-child-theme-pro'); ?></label>
+                                    <label for="child_author"><?php _e('Author', 'wp-child-theme-pro'); ?></label>
                                 </th>
                                 <td>
-                                    <input type="text" id="child-author" name="child_author" class="regular-text" value="<?php echo esc_attr(isset($options['default_author']) ? $options['default_author'] : get_bloginfo('name')); ?>">
+                                    <input type="text" id="child_author" name="child_author" class="regular-text" value="<?php echo esc_attr(isset($options['default_author']) ? $options['default_author'] : get_bloginfo('name')); ?>">
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label for="child-version"><?php _e('Version', 'wp-child-theme-pro'); ?></label>
+                                    <label for="child_version"><?php _e('Version', 'wp-child-theme-pro'); ?></label>
                                 </th>
                                 <td>
-                                    <input type="text" id="child-version" name="child_version" class="regular-text" value="1.0.0">
+                                    <input type="text" id="child_version" name="child_version" class="regular-text" value="1.0.0">
                                 </td>
                             </tr>
                             <tr>
@@ -81,8 +102,8 @@ if (!defined('ABSPATH')) {
                                 </th>
                                 <td>
                                     <fieldset>
-                                        <label for="copy-settings">
-                                            <input type="checkbox" id="copy-settings" name="copy_settings" value="1" <?php checked(1, isset($options['copy_parent_settings']) ? $options['copy_parent_settings'] : true); ?>>
+                                        <label for="copy_settings">
+                                            <input type="checkbox" id="copy_settings" name="copy_settings" value="1" <?php checked(1, isset($options['copy_parent_settings']) ? $options['copy_parent_settings'] : true); ?>>
                                             <?php _e('Copy parent theme settings', 'wp-child-theme-pro'); ?>
                                         </label>
                                     </fieldset>

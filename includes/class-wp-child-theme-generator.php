@@ -279,7 +279,56 @@ class WP_Child_Theme_Generator {
             $this->copy_parent_settings($parent_theme, $child_slug);
         }
         
+        // Activate child theme
+        $this->activate_child_theme($child_slug);
+        
         return $child_slug;
+    }
+
+    /**
+     * Activate child theme
+     * 
+     * @param string $child_slug Child theme slug
+     * @return bool Whether activation was successful
+     */
+    public function activate_child_theme($child_slug = '') {
+        // Use instance property if no slug provided
+        if (empty($child_slug) && !empty($this->child_theme_slug)) {
+            $child_slug = $this->child_theme_slug;
+        }
+        
+        if ($child_slug) {
+            switch_theme($child_slug);
+            
+            // Add a transient to show an admin notice
+            set_transient('wpchild_theme_activated', $child_slug, 5);
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Add admin notices
+     */
+    public function admin_notices() {
+        // Check for theme activated notice
+        $activated_theme = get_transient('wpchild_theme_activated');
+        
+        if ($activated_theme) {
+            // Clear the transient
+            delete_transient('wpchild_theme_activated');
+            
+            $theme = wp_get_theme($activated_theme);
+            $theme_name = $theme->get('Name');
+            
+            ?>
+            <div class="notice notice-success is-dismissible">
+                <p><?php printf(esc_html__('Child theme "%s" has been created and activated successfully!', 'wp-child-theme-pro'), $theme_name); ?></p>
+            </div>
+            <?php
+        }
     }
 
     /**

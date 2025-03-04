@@ -55,31 +55,35 @@ if (!defined('ABSPATH')) {
                 <div class="wpchild-card">
                     <h2><?php _e('Import/Export', 'wp-child-theme-pro'); ?></h2>
                     
-                    <h3><?php _e('Export Child Theme', 'wp-child-theme-pro'); ?></h3>
-                    <p><?php _e('Export a child theme to use on another WordPress site.', 'wp-child-theme-pro'); ?></p>
+                    <h3><?php _e('Export Theme', 'wp-child-theme-pro'); ?></h3>
+                    <p><?php _e('Export a theme to use on another WordPress site.', 'wp-child-theme-pro'); ?></p>
                     
                     <form method="post" action="">
-                        <select name="theme_to_export">
-                            <option value=""><?php _e('-- Select Child Theme --', 'wp-child-theme-pro'); ?></option>
-                            <?php 
-                            foreach ($themes as $theme_slug => $theme) {
-                                if ($theme->parent()) {
-                                    echo '<option value="' . esc_attr($theme_slug) . '">' . esc_html($theme->get('Name')) . '</option>';
-                                }
-                            }
-                            ?>
-                        </select>
                         <?php wp_nonce_field('wpchild-export-nonce', 'wpchild_export_nonce'); ?>
-                        <input type="submit" name="wpchild_export" class="button" value="<?php _e('Export', 'wp-child-theme-pro'); ?>">
+                        <select name="theme_to_export" class="wpchild-select-theme">
+                            <option value=""><?php _e('-- Select Theme --', 'wp-child-theme-pro'); ?></option>
+                            <?php 
+                            // Add all themes to dropdown
+                            $all_themes = wp_get_themes();
+                            foreach ($all_themes as $theme_slug => $theme) : ?>
+                                <option value="<?php echo esc_attr($theme_slug); ?>"><?php 
+                                    echo esc_html($theme->get('Name')); 
+                                    if ($theme->parent()) {
+                                        echo ' (' . __('Child of', 'wp-child-theme-pro') . ' ' . $theme->parent()->get('Name') . ')';
+                                    }
+                                ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="submit" name="wpchild_export" class="button" value="<?php _e('Export', 'wp-child-theme-pro'); ?>" />
                     </form>
                     
                     <h3><?php _e('Import Child Theme', 'wp-child-theme-pro'); ?></h3>
                     <p><?php _e('Import a child theme from a ZIP file.', 'wp-child-theme-pro'); ?></p>
                     
-                    <form method="post" enctype="multipart/form-data" action="">
-                        <input type="file" name="theme_zip" accept=".zip">
+                    <form method="post" action="" enctype="multipart/form-data">
                         <?php wp_nonce_field('wpchild-import-nonce', 'wpchild_import_nonce'); ?>
-                        <input type="submit" name="wpchild_import" class="button" value="<?php _e('Import', 'wp-child-theme-pro'); ?>">
+                        <input type="file" name="theme_zip" accept=".zip" />
+                        <input type="submit" name="wpchild_import" class="button" value="<?php _e('Import', 'wp-child-theme-pro'); ?>" />
                     </form>
                 </div>
             </div>
@@ -101,14 +105,15 @@ if (!defined('ABSPATH')) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($backups as $backup) : ?>
+                                <?php foreach ($this->plugin->backup->get_backups() as $backup) : ?>
                                     <tr>
                                         <td><?php echo esc_html($backup['theme']); ?></td>
                                         <td><?php echo esc_html($backup['date']); ?></td>
-                                        <td><?php echo esc_html(size_format($backup['size'])); ?></td>
+                                        <td><?php echo esc_html($backup['size']); ?></td>
                                         <td>
-                                            <button class="button restore-backup" data-backup="<?php echo esc_attr($backup['file']); ?>"><?php _e('Restore', 'wp-child-theme-pro'); ?></button>
-                                            <button class="button delete-backup" data-backup="<?php echo esc_attr($backup['file']); ?>"><?php _e('Delete', 'wp-child-theme-pro'); ?></button>
+                                            <a href="#" class="button wpchild-restore-backup" data-backup="<?php echo esc_attr($backup['file']); ?>" data-nonce="<?php echo wp_create_nonce('wpchild-nonce'); ?>"><?php _e('Restore', 'wp-child-theme-pro'); ?></a>
+                                            <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=wp-child-theme-pro-backup&action=download&file=' . urlencode($backup['file'])), 'wpchild-download-' . $backup['file'], 'nonce'); ?>" class="button button-secondary"><?php _e('Download', 'wp-child-theme-pro'); ?></a>
+                                            <a href="#" class="button button-secondary wpchild-delete-backup" data-backup="<?php echo esc_attr($backup['file']); ?>" data-nonce="<?php echo wp_create_nonce('wpchild-nonce'); ?>"><?php _e('Delete', 'wp-child-theme-pro'); ?></a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

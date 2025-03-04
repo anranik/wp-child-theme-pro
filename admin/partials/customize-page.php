@@ -92,9 +92,23 @@ if (!defined('ABSPATH')) {
                     <div class="wpchild-card">
                         <h2><?php _e('Advanced Customization Options', 'wp-child-theme-pro'); ?></h2>
                         
-                        <div class="wpchild-theme-preview">
-                            <img src="<?php echo admin_url('images/spinner.gif'); ?>" alt="<?php _e('Theme Preview', 'wp-child-theme-pro'); ?>" id="theme-preview-image">
-                            <div class="wpchild-theme-info" id="theme-info"></div>
+                        <div class="theme-preview">
+                            <?php
+                            // Get the selected child theme
+                            $selected_theme = isset($_GET['theme']) ? sanitize_text_field($_GET['theme']) : '';
+                            $theme = wp_get_theme($selected_theme);
+                            
+                            // Get theme screenshot
+                            $screenshot = $theme->get_screenshot();
+                            $theme_name = $theme->get('Name');
+                            
+                            if ($screenshot) {
+                                echo '<img src="' . esc_url($screenshot) . '" alt="' . esc_attr(sprintf(__('Screenshot of %s', 'wp-child-theme-pro'), $theme_name)) . '" class="theme-preview">';
+                            } else {
+                                echo '<div class="no-screenshot">' . __('No screenshot available', 'wp-child-theme-pro') . '</div>';
+                            }
+                            ?>
+                            <div class="theme-name"><?php echo esc_html($theme_name); ?></div>
                         </div>
                         
                         <h3><?php _e('Theme Customizer', 'wp-child-theme-pro'); ?></h3>
@@ -139,8 +153,29 @@ if (!defined('ABSPATH')) {
                         }
                         
                         // Update theme preview
-                        $('#theme-preview-image').attr('src', '<?php echo admin_url('themes.php?theme='); ?>' + theme);
-                        $('#theme-info').text($('#child-theme-select option:selected').text());
+                        $.ajax({
+                            url: ajaxurl,
+                            method: 'POST',
+                            data: {
+                                action: 'wpchild_get_theme_screenshot',
+                                nonce: '<?php echo wp_create_nonce('wpchild-nonce'); ?>',
+                                theme: theme
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    var screenshot = response.data.screenshot;
+                                    var theme_name = response.data.theme_name;
+                                    
+                                    if (screenshot) {
+                                        $('#theme-preview-image').attr('src', screenshot);
+                                    } else {
+                                        $('#theme-preview-image').attr('src', '<?php echo admin_url('images/spinner.gif'); ?>');
+                                    }
+                                    
+                                    $('#theme-info').text(theme_name);
+                                }
+                            }
+                        });
                         
                         // Update customizer and editor links
                         $('#customizer-link').attr('href', '<?php echo admin_url('customize.php?theme='); ?>' + theme);

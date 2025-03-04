@@ -88,6 +88,7 @@ class WP_Child_Theme_Pro {
 
         // Add actions
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        add_action('admin_notices', array($this, 'admin_notices'));
     }
 
     /**
@@ -107,6 +108,16 @@ class WP_Child_Theme_Pro {
         if (is_admin()) {
             $admin = new WP_Child_Theme_Pro_Admin($this);
             $admin->init();
+        }
+    }
+
+    /**
+     * Display admin notices
+     */
+    public function admin_notices() {
+        // Check if generator is initialized
+        if (isset($this->generator) && method_exists($this->generator, 'admin_notices')) {
+            $this->generator->admin_notices();
         }
     }
 

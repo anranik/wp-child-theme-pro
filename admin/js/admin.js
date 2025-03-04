@@ -291,6 +291,77 @@
             });
         }
         
+        // Backup functionality
+        $('.wpchild-restore-backup').on('click', function(e) {
+            e.preventDefault();
+            
+            var backupFile = $(this).data('backup');
+            var nonce = $(this).data('nonce');
+            
+            if (confirm(wpchildLocalize.restore_confirm)) {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'wpchild_restore_backup',
+                        backup_file: backupFile,
+                        nonce: nonce
+                    },
+                    beforeSend: function() {
+                        showLoader();
+                    },
+                    success: function(response) {
+                        hideLoader();
+                        if (response.success) {
+                            alert(response.data.message);
+                            location.reload();
+                        } else {
+                            alert(response.data.message);
+                        }
+                    },
+                    error: function() {
+                        hideLoader();
+                        alert(wpchildLocalize.ajax_error);
+                    }
+                });
+            }
+        });
+        
+        $('.wpchild-delete-backup').on('click', function(e) {
+            e.preventDefault();
+            
+            var backupFile = $(this).data('backup');
+            var nonce = $(this).data('nonce');
+            
+            if (confirm(wpchildLocalize.delete_confirm)) {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'wpchild_delete_backup',
+                        backup_file: backupFile,
+                        nonce: nonce
+                    },
+                    beforeSend: function() {
+                        showLoader();
+                    },
+                    success: function(response) {
+                        hideLoader();
+                        if (response.success) {
+                            alert(response.data.message);
+                            location.reload();
+                        } else {
+                            alert(response.data.message);
+                        }
+                    },
+                    error: function() {
+                        hideLoader();
+                        alert(wpchildLocalize.ajax_error);
+                    }
+                });
+            }
+        });
+        
         // Backup and restore
         if ($('.backup-theme').length) {
             // Backup theme button
@@ -484,6 +555,20 @@
             }
             
             return false;
+        }
+        
+        /**
+         * Helper function to show loader
+         */
+        function showLoader() {
+            $('.wpchild-loader').show();
+        }
+        
+        /**
+         * Helper function to hide loader
+         */
+        function hideLoader() {
+            $('.wpchild-loader').hide();
         }
         
     });
