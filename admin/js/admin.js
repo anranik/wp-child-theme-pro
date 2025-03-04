@@ -23,12 +23,12 @@
                 data: {
                     action: 'wpchild_generate_child_theme',
                     nonce: wpchild_vars.nonce,
-                    parent_theme: $('#parent-theme').val(),
-                    child_name: $('#child-name').val(),
-                    child_desc: $('#child-desc').val(),
-                    child_author: $('#child-author').val(),
-                    child_version: $('#child-version').val(),
-                    copy_settings: $('#copy-settings').is(':checked') ? 1 : 0,
+                    parent_theme: $('#parent_theme').val(),
+                    child_name: $('#child_name').val(),
+                    child_desc: $('#child_desc').val(),
+                    child_author: $('#child_author').val(),
+                    child_version: $('#child_version').val(),
+                    copy_settings: $('#copy_settings').is(':checked') ? 1 : 0,
                     selected_files: getSelectedFiles()
                 },
                 success: function(response) {
@@ -60,7 +60,7 @@
         });
         
         // Parent theme selection change
-        $('#parent-theme').on('change', function() {
+        $('#parent_theme').on('change', function() {
             var parentTheme = $(this).val();
             
             if (parentTheme) {

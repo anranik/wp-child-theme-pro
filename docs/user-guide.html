@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WP Child Theme Pro - User Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            color: #333;
+            line-height: 1.5;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #23282d;
+        }
+        h1 {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.8em;
+            margin-top: 40px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        h3 {
+            font-size: 1.4em;
+            margin-top: 30px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        code {
+            background-color: #f6f8fa;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .feature-box {
+            background-color: #f9f9f9;
+            border-left: 4px solid #0073aa;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .note {
+            background-color: #f1f1f1;
+            border-left: 4px solid #ffb900;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .highlight {
+            background-color: #f0f7fd;
+            border-left: 4px solid #0073aa;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .steps {
+            counter-reset: step-counter;
+            margin-left: 0;
+            padding-left: 0;
+            list-style-type: none;
+        }
+        .steps li {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 40px;
+        }
+        .steps li:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background-color: #0073aa;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+        }
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .toc ul {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>WP Child Theme Pro</h1>
+    
+    <div class="highlight">
+        <strong>WP Child Theme Pro</strong> is a powerful WordPress plugin designed to simplify the creation, management, and customization of child themes. With an intuitive interface and advanced features, it helps WordPress developers and site owners implement best practices without writing a single line of code.
+    </div>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#key-features">Key Features</a></li>
+            <li><a href="#getting-started">Getting Started</a></li>
+            <li><a href="#generating-child-themes">Generating Child Themes</a></li>
+            <li><a href="#customizing-child-themes">Customizing Child Themes</a></li>
+            <li><a href="#backup-restore">Backup & Restore</a></li>
+            <li><a href="#export-import">Export & Import Themes</a></li>
+            <li><a href="#settings">Settings</a></li>
+            <li><a href="#faq">Frequently Asked Questions</a></li>
+        </ul>
+    </div>
+
+    <h2 id="introduction">Introduction</h2>
+    <p>Child themes are the recommended way to customize WordPress themes without losing your changes when the parent theme updates. WP Child Theme Pro makes this process simple and accessible to everyone, regardless of their technical expertise.</p>
+    
+    <div class="feature-box">
+        <h3>Why Use Child Themes?</h3>
+        <ul>
+            <li><strong>Safe Updates:</strong> When a parent theme is updated, your customizations remain intact</li>
+            <li><strong>Code Organization:</strong> Keep custom code separate from the parent theme</li>
+            <li><strong>Learning Tool:</strong> Great way to learn theme development without starting from scratch</li>
+            <li><strong>Easier Maintenance:</strong> Only modify the files you need to change</li>
+        </ul>
+    </div>
+
+    <h2 id="key-features">Key Features</h2>
+    <ul>
+        <li><strong>One-Click Child Theme Generation</strong> - Create child themes instantly with proper structure</li>
+        <li><strong>Advanced Customization Options</strong> - Edit CSS, PHP, and JavaScript with syntax highlighting</li>
+        <li><strong>Automatic Backup System</strong> - Create backup points before making changes</li>
+        <li><strong>Theme Export & Import</strong> - Easily transfer your themes between WordPress installations</li>
+        <li><strong>Parent Theme File Selection</strong> - Choose specific files from the parent theme to include</li>
+        <li><strong>Direct WordPress Customizer Integration</strong> - Access WordPress's built-in theme customizer</li>
+    </ul>
+
+    <h2 id="getting-started">Getting Started</h2>
+    <p>After installing and activating WP Child Theme Pro, you'll find a new menu item in your WordPress admin sidebar labeled "WP Child Theme Pro". This is your gateway to all the plugin's functionality.</p>
+
+    <h2 id="generating-child-themes">Generating Child Themes</h2>
+    <p>Creating a child theme is a simple process:</p>
+    
+    <ol class="steps">
+        <li>Navigate to the "WP Child Theme Pro" page in your WordPress admin</li>
+        <li>Select the parent theme from the dropdown menu (the currently active theme is selected by default)</li>
+        <li>Enter a name for your child theme (a default name based on the parent theme is provided)</li>
+        <li>Optionally add a description, author name, and version number</li>
+        <li>Choose whether to copy parent theme settings</li>
+        <li>Select which specific files you want to include from the parent theme</li>
+        <li>Click "Generate Child Theme"</li>
+    </ol>
+    
+    <p>After generation, your child theme will be automatically activated and ready for customization.</p>
+
+    <div class="note">
+        <strong>Note:</strong> WP Child Theme Pro uses a simplified child theme structure that includes only the necessary files to get started. This helps avoid potential compatibility issues when copying too many files from the parent theme.
+    </div>
+
+    <h2 id="customizing-child-themes">Customizing Child Themes</h2>
+    <p>The "Customize" tab provides a convenient interface for modifying your child theme:</p>
+    
+    <h3>CSS Editor</h3>
+    <p>Add custom CSS that will be included in your child theme's stylesheet. This is perfect for making visual adjustments without modifying parent theme files.</p>
+    
+    <h3>JS Editor</h3>
+    <p>Add custom JavaScript code that will be enqueued in your child theme. This is useful for adding interactive elements or customizing existing functionality.</p>
+    
+    <h3>PHP Editor</h3>
+    <p>Modify your child theme's functions.php file to add new functionality or override parent theme functions.</p>
+    
+    <h3>WordPress Theme Customizer</h3>
+    <p>Access WordPress's built-in theme customizer directly from the plugin interface for additional theme options.</p>
+
+    <h2 id="backup-restore">Backup & Restore</h2>
+    <p>The backup system helps you maintain a safe workflow:</p>
+    
+    <h3>Creating Backups</h3>
+    <p>You can manually create backups of your themes at any time. The plugin also offers an option to automatically create backups before generating new child themes.</p>
+    
+    <h3>Restoring Backups</h3>
+    <p>To restore a backup:</p>
+    <ol class="steps">
+        <li>Go to the "Backup & Restore" tab</li>
+        <li>Find the backup you want to restore in the list</li>
+        <li>Click the "Restore" button</li>
+        <li>Confirm the restoration when prompted</li>
+    </ol>
+    
+    <h2 id="export-import">Export & Import Themes</h2>
+    <p>WP Child Theme Pro allows you to easily export and import WordPress themes:</p>
+    
+    <h3>Exporting Themes</h3>
+    <p>To export a theme:</p>
+    <ol class="steps">
+        <li>Go to the "Backup & Restore" tab</li>
+        <li>In the "Export Theme" section, select the theme you want to export</li>
+        <li>Click "Export Theme"</li>
+        <li>The theme will be downloaded as a ZIP file to your computer</li>
+    </ol>
+    
+    <h3>Importing Themes</h3>
+    <p>To import a previously exported theme:</p>
+    <ol class="steps">
+        <li>Go to the "Backup & Restore" tab</li>
+        <li>In the "Import Theme" section, click "Choose File"</li>
+        <li>Select the theme ZIP file from your computer</li>
+        <li>Click "Import Theme"</li>
+    </ol>
+
+    <h2 id="settings">Settings</h2>
+    <p>The "Settings" tab allows you to configure default plugin behavior:</p>
+    <ul>
+        <li><strong>Copy Parent Theme Settings</strong> - Automatically copy parent theme settings when creating child themes</li>
+        <li><strong>Auto Backup</strong> - Create automatic backups before making changes</li>
+        <li><strong>Default Author</strong> - Set the default author name for new child themes</li>
+    </ul>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+    
+    <h3>Will this plugin work with my theme?</h3>
+    <p>WP Child Theme Pro is designed to work with any properly coded WordPress theme. However, some highly customized or complex themes might require additional manual adjustments.</p>
+    
+    <h3>Does creating a child theme affect my current site?</h3>
+    <p>Creating a child theme does not change your site's appearance until you activate the child theme. After activation, you might notice some differences if the parent theme had custom settings that weren't transferred.</p>
+    
+    <h3>Will my widgets and menus be preserved?</h3>
+    <p>Yes, widgets and menus are stored in the WordPress database, not in the theme files, so they will be preserved when switching to a child theme.</p>
+    
+    <h3>Can I go back to my parent theme after creating a child theme?</h3>
+    <p>Yes, you can switch back to the parent theme at any time through the WordPress Appearance → Themes menu. However, any customizations made specifically to the child theme will not be available when using the parent theme.</p>
+    
+    <div class="highlight">
+        <p><strong>Need more help?</strong> If you have questions or need assistance, please contact plugin support.</p>
+    </div>
+    
+    <footer style="margin-top: 40px; text-align: center; color: #666; font-size: 0.9em;">
+        <p>Documentation for WP Child Theme Pro v1.0.0<br>
+        Last updated: March 5, 2025</p>
+    </footer>
+</body>
+</html>
