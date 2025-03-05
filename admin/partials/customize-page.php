@@ -9,6 +9,23 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+// Get current theme
+$current_theme = wp_get_theme();
+$is_child_theme = $current_theme->parent() ? true : false;
+
+// Get all child themes for fallback
+$all_themes = wp_get_themes();
+$child_themes = array();
+
+foreach ($all_themes as $theme_slug => $theme) {
+    if ($theme->parent()) {
+        $child_themes[$theme_slug] = $theme;
+    }
+}
+
+// Check if we have an active child theme or any child themes
+$has_child_theme = $is_child_theme || !empty($child_themes);
 ?>
 
 <div class="wrap wpchild-admin">
@@ -22,199 +39,193 @@ if (!defined('ABSPATH')) {
     </h2>
     
     <div class="wpchild-page-content">
-        <?php if (empty($child_themes)) : ?>
-            <div class="wpchild-card">
-                <h2><?php _e('No Child Themes Found', 'wp-child-theme-pro'); ?></h2>
-                <p><?php _e('You need to create a child theme before you can customize it.', 'wp-child-theme-pro'); ?></p>
-                <a href="?page=wp-child-theme-pro" class="button button-primary"><?php _e('Generate Child Theme', 'wp-child-theme-pro'); ?></a>
+        <?php if (!$is_child_theme) : ?>
+            <div class="wpchild-notice wpchild-warning">
+                <p><strong><?php _e('You are not using a child theme.', 'wp-child-theme-pro'); ?></strong></p>
+                <p><?php _e('It is highly recommended to use a child theme for customizations to avoid losing changes during theme updates.', 'wp-child-theme-pro'); ?></p>
+                <p><a href="?page=wp-child-theme-pro" class="button button-primary"><?php _e('Generate Child Theme', 'wp-child-theme-pro'); ?></a></p>
             </div>
-        <?php else : ?>
-            <div class="wpchild-row">
-                <div class="wpchild-col-6">
-                    <div class="wpchild-card">
-                        <h2><?php _e('Customize Child Theme', 'wp-child-theme-pro'); ?></h2>
-                        
-                        <p><?php _e('Select a child theme to customize:', 'wp-child-theme-pro'); ?></p>
-                        
-                        <select id="child-theme-select">
-                            <option value=""><?php _e('-- Select Child Theme --', 'wp-child-theme-pro'); ?></option>
-                            <?php foreach ($child_themes as $theme_slug => $theme) : ?>
-                                <option value="<?php echo esc_attr($theme_slug); ?>"><?php echo esc_html($theme->get('Name')); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        
-                        <div class="wpchild-tabs">
-                            <a href="#css-tab" class="wpchild-tab active"><?php _e('CSS Editor', 'wp-child-theme-pro'); ?></a>
-                            <a href="#js-tab" class="wpchild-tab"><?php _e('JS Editor', 'wp-child-theme-pro'); ?></a>
-                            <a href="#php-tab" class="wpchild-tab"><?php _e('PHP Editor', 'wp-child-theme-pro'); ?></a>
-                        </div>
-                        
-                        <div id="css-tab" class="wpchild-tab-content active">
-                            <h3><?php _e('Custom CSS', 'wp-child-theme-pro'); ?></h3>
-                            <p><?php _e('Add custom CSS to your child theme. This will be added to the style.css file.', 'wp-child-theme-pro'); ?></p>
-                            
-                            <textarea id="custom-css-editor" rows="15" class="large-text code"></textarea>
-                            
-                            <p>
-                                <button id="save-custom-css" class="button button-primary"><?php _e('Save CSS', 'wp-child-theme-pro'); ?></button>
-                                <span class="wpchild-saving"><?php _e('Saving...', 'wp-child-theme-pro'); ?></span>
-                                <span class="wpchild-success"><?php _e('Saved successfully!', 'wp-child-theme-pro'); ?></span>
-                            </p>
-                        </div>
-                        
-                        <div id="js-tab" class="wpchild-tab-content">
-                            <h3><?php _e('Custom JavaScript', 'wp-child-theme-pro'); ?></h3>
-                            <p><?php _e('Add custom JavaScript to your child theme. This will be added to the js/custom.js file.', 'wp-child-theme-pro'); ?></p>
-                            
-                            <textarea id="custom-js-editor" rows="15" class="large-text code"></textarea>
-                            
-                            <p>
-                                <button id="save-custom-js" class="button button-primary"><?php _e('Save JS', 'wp-child-theme-pro'); ?></button>
-                                <span class="wpchild-saving"><?php _e('Saving...', 'wp-child-theme-pro'); ?></span>
-                                <span class="wpchild-success"><?php _e('Saved successfully!', 'wp-child-theme-pro'); ?></span>
-                            </p>
-                        </div>
-                        
-                        <div id="php-tab" class="wpchild-tab-content">
-                            <h3><?php _e('PHP Editor', 'wp-child-theme-pro'); ?></h3>
-                            <p><?php _e('Edit functions.php and other PHP files in your child theme.', 'wp-child-theme-pro'); ?></p>
-                            
-                            <div class="wpchild-pro-feature">
-                                <h4><?php _e('Pro Feature', 'wp-child-theme-pro'); ?></h4>
-                                <p><?php _e('The PHP editor is a premium feature of WP Child Theme Pro. Upgrade to Pro to edit PHP files directly in the dashboard.', 'wp-child-theme-pro'); ?></p>
-                                <a href="#" class="button button-primary"><?php _e('Upgrade to Pro', 'wp-child-theme-pro'); ?></a>
-                            </div>
-                        </div>
+        <?php endif; ?>
+        
+        <div class="wpchild-row">
+            <div class="wpchild-col-6">
+                <div class="wpchild-card">
+                    <h2><?php _e('Customize Your Theme', 'wp-child-theme-pro'); ?></h2>
+                    
+                    <?php if ($is_child_theme) : ?>
+                    <div class="wpchild-active-theme">
+                        <h3><?php printf(__('Active Child Theme: %s', 'wp-child-theme-pro'), $current_theme->get('Name')); ?></h3>
+                        <p><?php printf(__('Parent Theme: %s', 'wp-child-theme-pro'), $current_theme->parent()->get('Name')); ?></p>
                     </div>
-                </div>
-                
-                <div class="wpchild-col-6">
-                    <div class="wpchild-card">
-                        <h2><?php _e('Advanced Customization Options', 'wp-child-theme-pro'); ?></h2>
+                    <?php else : ?>
+                    <div class="wpchild-active-theme">
+                        <h3><?php printf(__('Active Theme: %s', 'wp-child-theme-pro'), $current_theme->get('Name')); ?></h3>
+                        <p class="description"><?php _e('Note: This is not a child theme. Your customizations may be lost during theme updates.', 'wp-child-theme-pro'); ?></p>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <div class="wpchild-tabs">
+                        <a href="#" class="wpchild-tab active" data-tab="css"><?php _e('CSS', 'wp-child-theme-pro'); ?></a>
+                        <a href="#" class="wpchild-tab" data-tab="js"><?php _e('JavaScript', 'wp-child-theme-pro'); ?></a>
+                        <a href="#" class="wpchild-tab" data-tab="php"><?php _e('PHP (Pro)', 'wp-child-theme-pro'); ?></a>
+                    </div>
+                    
+                    <div id="css-tab" class="wpchild-tab-content active">
+                        <h3><?php _e('Custom CSS', 'wp-child-theme-pro'); ?></h3>
+                        <p><?php _e('Add custom CSS for your site. This code will be applied globally across your site.', 'wp-child-theme-pro'); ?></p>
                         
-                        <div class="theme-preview">
-                            <?php
-                            // Get the selected child theme
-                            $selected_theme = isset($_GET['theme']) ? sanitize_text_field($_GET['theme']) : '';
-                            $theme = wp_get_theme($selected_theme);
-                            
-                            // Get theme screenshot
-                            $screenshot = $theme->get_screenshot();
-                            $theme_name = $theme->get('Name');
-                            
-                            if ($screenshot) {
-                                echo '<img src="' . esc_url($screenshot) . '" alt="' . esc_attr(sprintf(__('Screenshot of %s', 'wp-child-theme-pro'), $theme_name)) . '" class="theme-preview">';
-                            } else {
-                                echo '<div class="no-screenshot">' . __('No screenshot available', 'wp-child-theme-pro') . '</div>';
-                            }
-                            ?>
-                            <div class="theme-name"><?php echo esc_html($theme_name); ?></div>
+                        <div class="wpchild-editor-tips">
+                            <p><strong><?php _e('Tips for CSS customization:', 'wp-child-theme-pro'); ?></strong></p>
+                            <ul>
+                                <li><?php _e('Use browser inspector to identify elements you want to target', 'wp-child-theme-pro'); ?></li>
+                                <li><?php _e('Be specific with your selectors to avoid conflicts', 'wp-child-theme-pro'); ?></li>
+                                <li><?php _e('Use !important sparingly and only when necessary', 'wp-child-theme-pro'); ?></li>
+                                <li><?php _e('Group related styles together with comments', 'wp-child-theme-pro'); ?></li>
+                            </ul>
                         </div>
                         
-                        <h3><?php _e('Theme Customizer', 'wp-child-theme-pro'); ?></h3>
-                        <p><?php _e('Use the WordPress Theme Customizer for more advanced customization options.', 'wp-child-theme-pro'); ?></p>
-                        <a href="#" id="customizer-link" class="button button-secondary"><?php _e('Open Theme Customizer', 'wp-child-theme-pro'); ?></a>
+                        <textarea id="custom-css-editor" name="wpchild_custom_css" rows="15" style="width: 100%;"><?php echo esc_textarea(get_theme_mod('wpchild_custom_css', '')); ?></textarea>
                         
-                        <h3><?php _e('Child Theme Files', 'wp-child-theme-pro'); ?></h3>
-                        <p><?php _e('View and edit child theme files directly from the WordPress file editor.', 'wp-child-theme-pro'); ?></p>
-                        <a href="#" id="editor-link" class="button button-secondary"><?php _e('Open Theme Editor', 'wp-child-theme-pro'); ?></a>
+                        <p>
+                            <button id="save-custom-css" class="button button-primary"><?php _e('Save CSS', 'wp-child-theme-pro'); ?></button>
+                            <span class="wpchild-saving"><?php _e('Saving...', 'wp-child-theme-pro'); ?></span>
+                            <span class="wpchild-success"><?php _e('Saved!', 'wp-child-theme-pro'); ?></span>
+                        </p>
+                    </div>
+                    
+                    <div id="js-tab" class="wpchild-tab-content">
+                        <h3><?php _e('Custom JavaScript', 'wp-child-theme-pro'); ?></h3>
+                        <p><?php _e('Add custom JavaScript for your site. This code will be applied globally across your site.', 'wp-child-theme-pro'); ?></p>
                         
-                        <h3><?php _e('Additional Resources', 'wp-child-theme-pro'); ?></h3>
-                        <ul>
-                            <li><a href="https://developer.wordpress.org/themes/advanced-topics/child-themes/" target="_blank"><?php _e('WordPress Child Theme Documentation', 'wp-child-theme-pro'); ?></a></li>
-                            <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS" target="_blank"><?php _e('CSS Reference', 'wp-child-theme-pro'); ?></a></li>
-                            <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank"><?php _e('JavaScript Reference', 'wp-child-theme-pro'); ?></a></li>
-                        </ul>
+                        <div class="wpchild-editor-tips">
+                            <p><strong><?php _e('Tips for JavaScript customization:', 'wp-child-theme-pro'); ?></strong></p>
+                            <ul>
+                                <li><?php _e('Wrap your code in a document ready function', 'wp-child-theme-pro'); ?></li>
+                                <li><?php _e('Use jQuery with $ safely by wrapping code in (function($) { ... })(jQuery);', 'wp-child-theme-pro'); ?></li>
+                                <li><?php _e('Avoid conflicts by using unique function and variable names', 'wp-child-theme-pro'); ?></li>
+                                <li><?php _e('Consider performance impact with DOM manipulations', 'wp-child-theme-pro'); ?></li>
+                            </ul>
+                        </div>
+                        
+                        <textarea id="custom-js-editor" name="wpchild_custom_js" rows="15" style="width: 100%;"><?php echo esc_textarea(get_theme_mod('wpchild_custom_js', '')); ?></textarea>
+                        
+                        <p>
+                            <button id="save-custom-js" class="button button-primary"><?php _e('Save JavaScript', 'wp-child-theme-pro'); ?></button>
+                            <span class="wpchild-saving"><?php _e('Saving...', 'wp-child-theme-pro'); ?></span>
+                            <span class="wpchild-success"><?php _e('Saved!', 'wp-child-theme-pro'); ?></span>
+                        </p>
+                    </div>
+                    
+                    <div id="php-tab" class="wpchild-tab-content">
+                        <div class="wpchild-pro-feature">
+                            <h3><?php _e('PHP Editing (Pro Feature)', 'wp-child-theme-pro'); ?></h3>
+                            <p><?php _e('The ability to edit PHP files is available in the Pro version of this plugin.', 'wp-child-theme-pro'); ?></p>
+                            <p><a href="#" class="button button-secondary"><?php _e('Upgrade to Pro', 'wp-child-theme-pro'); ?></a></p>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <script>
-                jQuery(document).ready(function($) {
-                    // Tab switching
-                    $('.wpchild-tab').on('click', function(e) {
-                        e.preventDefault();
-                        
-                        // Hide all tabs
-                        $('.wpchild-tab').removeClass('active');
-                        $('.wpchild-tab-content').removeClass('active');
-                        
-                        // Show selected tab
-                        $(this).addClass('active');
-                        $($(this).attr('href')).addClass('active');
-                    });
+            <div class="wpchild-col-6">
+                <div class="wpchild-card">
+                    <h2><?php _e('Theme Preview', 'wp-child-theme-pro'); ?></h2>
+                    <div class="theme-preview">
+                        <?php if ($current_theme->get_screenshot()) : ?>
+                            <img src="<?php echo esc_url($current_theme->get_screenshot()); ?>" alt="<?php echo esc_attr($current_theme->get('Name')); ?>" />
+                        <?php else : ?>
+                            <div class="no-screenshot"><?php _e('No screenshot available', 'wp-child-theme-pro'); ?></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
+                <div class="wpchild-card">
+                    <h2><?php _e('Quick Help', 'wp-child-theme-pro'); ?></h2>
                     
-                    // Child theme selection
-                    $('#child-theme-select').on('change', function() {
-                        var theme = $(this).val();
-                        
-                        if (!theme) {
-                            return;
-                        }
-                        
-                        // Update theme preview
-                        $.ajax({
-                            url: ajaxurl,
-                            method: 'POST',
-                            data: {
-                                action: 'wpchild_get_theme_screenshot',
-                                nonce: '<?php echo wp_create_nonce('wpchild-nonce'); ?>',
-                                theme: theme
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    var screenshot = response.data.screenshot;
-                                    var theme_name = response.data.theme_name;
-                                    
-                                    if (screenshot) {
-                                        $('#theme-preview-image').attr('src', screenshot);
-                                    } else {
-                                        $('#theme-preview-image').attr('src', '<?php echo admin_url('images/spinner.gif'); ?>');
-                                    }
-                                    
-                                    $('#theme-info').text(theme_name);
-                                }
-                            }
-                        });
-                        
-                        // Update customizer and editor links
-                        $('#customizer-link').attr('href', '<?php echo admin_url('customize.php?theme='); ?>' + theme);
-                        $('#editor-link').attr('href', '<?php echo admin_url('theme-editor.php?theme='); ?>' + theme);
-                        
-                        // Load CSS and JS
-                        loadThemeFiles(theme);
-                    });
-                    
-                    // Load theme files
-                    function loadThemeFiles(theme) {
-                        $.ajax({
-                            url: ajaxurl,
-                            method: 'POST',
-                            data: {
-                                action: 'wpchild_get_theme_files',
-                                nonce: '<?php echo wp_create_nonce('wpchild-nonce'); ?>',
-                                theme: theme
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    // Update editors
-                                    if (response.data.css) {
-                                        window.cssEditor.setValue(response.data.css);
-                                    } else {
-                                        window.cssEditor.setValue('');
-                                    }
-                                    
-                                    if (response.data.js) {
-                                        window.jsEditor.setValue(response.data.js);
-                                    } else {
-                                        window.jsEditor.setValue('');
-                                    }
-                                }
-                            }
-                        });
-                    }
-                });
-            </script>
-        <?php endif; ?>
+                    <div class="wpchild-help">
+                        <h3><?php _e('CSS Examples', 'wp-child-theme-pro'); ?></h3>
+                        <pre>
+/* Change the site title color */
+.site-title a {
+    color: #ff6b6b;
+}
+
+/* Adjust the content width */
+.content-area {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Customize buttons */
+.button, .btn, .wp-block-button__link {
+    background-color: #3498db;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.button:hover, .btn:hover, .wp-block-button__link:hover {
+    background-color: #2980b9;
+}</pre>
+
+                        <h3><?php _e('JavaScript Examples', 'wp-child-theme-pro'); ?></h3>
+                        <pre>
+// Wrap code in jQuery ready function
+(function($) {
+    'use strict';
+    
+    $(document).ready(function() {
+        // Smooth scroll to anchors
+        $('a[href*="#"]:not([href="#"])').click(function() {
+            if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && 
+                location.hostname == this.hostname) {
+                
+                var target = $(this.hash);
+                target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
+                
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top - 50
+                    }, 1000);
+                    return false;
+                }
+            }
+        });
+        
+        // Add class to menu items on scroll
+        $(window).scroll(function() {
+            var scrollDistance = $(window).scrollTop();
+            
+            // Highlight menu item based on scroll position
+            $('section').each(function(i) {
+                if ($(this).position().top <= scrollDistance + 100) {
+                    $('.nav-menu a.active').removeClass('active');
+                    $('.nav-menu a').eq(i).addClass('active');
+                }
+            });
+        });
+    });
+})(jQuery);</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    // Tab switching
+    $('.wpchild-tab').on('click', function(e) {
+        e.preventDefault();
+        
+        var tab = $(this).data('tab');
+        
+        $('.wpchild-tab').removeClass('active');
+        $(this).addClass('active');
+        
+        $('.wpchild-tab-content').removeClass('active');
+        $('#' + tab + '-tab').addClass('active');
+    });
+});
+</script>

@@ -57,6 +57,10 @@ class WP_Child_Theme_Pro_Admin {
         add_action('wp_ajax_wpchild_backup_theme', array($this, 'ajax_backup_theme'));
         add_action('wp_ajax_wpchild_download_backup', array($this, 'ajax_download_backup'));
         add_action('wp_ajax_wpchild_generate_child_theme', array($this, 'ajax_generate_child_theme'));
+        add_action('wp_ajax_wpchild_save_custom_css', array($this, 'ajax_save_custom_css'));
+        add_action('wp_ajax_wpchild_save_custom_js', array($this, 'ajax_save_custom_js'));
+        add_action('wp_ajax_wpchild_get_custom_css', array($this, 'ajax_get_custom_css'));
+        add_action('wp_ajax_wpchild_get_custom_js', array($this, 'ajax_get_custom_js'));
     }
 
     /**
@@ -91,7 +95,8 @@ class WP_Child_Theme_Pro_Admin {
             'generating' => __('Generating file list...', 'wp-child-theme-pro'),
             'generating_error' => __('Error generating child theme. Please try again.', 'wp-child-theme-pro'),
             'saving_error' => __('Error saving changes. Please try again.', 'wp-child-theme-pro'),
-            'confirm_delete' => __('Are you sure you want to delete this? This action cannot be undone.', 'wp-child-theme-pro')
+            'confirm_delete' => __('Are you sure you want to delete this? This action cannot be undone.', 'wp-child-theme-pro'),
+            'current_theme' => wp_get_theme()->get_stylesheet()
         ));
     }
 
@@ -690,5 +695,185 @@ class WP_Child_Theme_Pro_Admin {
             'message' => __('Child theme generated successfully.', 'wp-child-theme-pro'),
             'child_theme' => $result
         ));
+    }
+
+    /**
+     * AJAX handler for saving custom CSS
+     */
+    public function ajax_save_custom_css() {
+        // Verify nonce
+        check_ajax_referer('wpchild-nonce', 'nonce');
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+        }
+        
+        // Get CSS content
+        $css = isset($_POST['css']) ? wp_unslash($_POST['css']) : '';
+        
+        // Get theme - either provided or current theme
+        $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : wp_get_theme()->get_stylesheet();
+        
+        // Save CSS to theme mod
+        set_theme_mod('wpchild_custom_css', $css);
+        
+        // Save CSS to file
+        $themes_dir = get_theme_root();
+        $theme_dir = trailingslashit($themes_dir) . $theme;
+        $css_dir = trailingslashit($theme_dir) . 'assets/css';
+        $css_file = trailingslashit($css_dir) . 'mytheme.css';
+        
+        // Create assets/css directory if it doesn't exist
+        if (!file_exists($css_dir)) {
+            wp_mkdir_p($css_dir);
+        }
+        
+        // Use WordPress filesystem API
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
+        // Write CSS to file
+        if (!$wp_filesystem->put_contents($css_file, $css)) {
+            wp_send_json_error(__('Failed to save CSS file.', 'wp-child-theme-pro'));
+        }
+        
+        wp_send_json_success(__('CSS saved successfully.', 'wp-child-theme-pro'));
+    }
+    
+    /**
+     * AJAX handler for saving custom JS
+     */
+    public function ajax_save_custom_js() {
+        // Verify nonce
+        check_ajax_referer('wpchild-nonce', 'nonce');
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+        }
+        
+        // Get JS content
+        $js = isset($_POST['js']) ? wp_unslash($_POST['js']) : '';
+        
+        // Get theme - either provided or current theme
+        $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : wp_get_theme()->get_stylesheet();
+        
+        // Save JS to theme mod
+        set_theme_mod('wpchild_custom_js', $js);
+        
+        // Save JS to file
+        $themes_dir = get_theme_root();
+        $theme_dir = trailingslashit($themes_dir) . $theme;
+        $js_dir = trailingslashit($theme_dir) . 'assets/js';
+        $js_file = trailingslashit($js_dir) . 'mytheme.js';
+        
+        // Create assets/js directory if it doesn't exist
+        if (!file_exists($js_dir)) {
+            wp_mkdir_p($js_dir);
+        }
+        
+        // Use WordPress filesystem API
+        global $wp_filesystem;
+        
+        // Initialize the WordPress filesystem
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . '/wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+        
+        // Write JS to file
+        if (!$wp_filesystem->put_contents($js_file, $js)) {
+            wp_send_json_error(__('Failed to save JS file.', 'wp-child-theme-pro'));
+        }
+        
+        wp_send_json_success(__('JS saved successfully.', 'wp-child-theme-pro'));
+    }
+    
+    /**
+     * AJAX handler for getting custom CSS
+     */
+    public function ajax_get_custom_css() {
+        // Verify nonce
+        check_ajax_referer('wpchild-nonce', 'nonce');
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+        }
+        
+        // Get theme - either provided or current theme
+        $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : wp_get_theme()->get_stylesheet();
+        
+        // Get CSS from theme mod
+        $css = get_theme_mod('wpchild_custom_css', '');
+        
+        // If empty, try to get from file
+        if (empty($css)) {
+            $themes_dir = get_theme_root();
+            $theme_dir = trailingslashit($themes_dir) . $theme;
+            $css_file = trailingslashit($theme_dir) . 'assets/css/mytheme.css';
+            
+            if (file_exists($css_file)) {
+                // Use WordPress filesystem API
+                global $wp_filesystem;
+                
+                // Initialize the WordPress filesystem
+                if (empty($wp_filesystem)) {
+                    require_once(ABSPATH . '/wp-admin/includes/file.php');
+                    WP_Filesystem();
+                }
+                
+                $css = $wp_filesystem->get_contents($css_file);
+            }
+        }
+        
+        wp_send_json_success($css);
+    }
+    
+    /**
+     * AJAX handler for getting custom JS
+     */
+    public function ajax_get_custom_js() {
+        // Verify nonce
+        check_ajax_referer('wpchild-nonce', 'nonce');
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+        }
+        
+        // Get theme - either provided or current theme
+        $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : wp_get_theme()->get_stylesheet();
+        
+        // Get JS from theme mod
+        $js = get_theme_mod('wpchild_custom_js', '');
+        
+        // If empty, try to get from file
+        if (empty($js)) {
+            $themes_dir = get_theme_root();
+            $theme_dir = trailingslashit($themes_dir) . $theme;
+            $js_file = trailingslashit($theme_dir) . 'assets/js/mytheme.js';
+            
+            if (file_exists($js_file)) {
+                // Use WordPress filesystem API
+                global $wp_filesystem;
+                
+                // Initialize the WordPress filesystem
+                if (empty($wp_filesystem)) {
+                    require_once(ABSPATH . '/wp-admin/includes/file.php');
+                    WP_Filesystem();
+                }
+                
+                $js = $wp_filesystem->get_contents($js_file);
+            }
+        }
+        
+        wp_send_json_success($js);
     }
 }

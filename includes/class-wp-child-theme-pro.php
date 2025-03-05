@@ -82,9 +82,8 @@ class WP_Child_Theme_Pro {
      * Initialize hooks
      */
     private function init_hooks() {
-        // Register activation and deactivation hooks
+        // Register activation hook only (deactivation is handled in main plugin file)
         register_activation_hook(WPCHILD_PLUGIN_BASENAME, array($this, 'activate'));
-        register_deactivation_hook(WPCHILD_PLUGIN_BASENAME, array($this, 'deactivate'));
 
         // Add actions
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
@@ -157,5 +156,12 @@ class WP_Child_Theme_Pro {
             'saving_error' => __('Error saving.', 'wp-child-theme-pro'),
             'confirm_delete' => __('Are you sure you want to delete this child theme? This action cannot be undone.', 'wp-child-theme-pro'),
         ));
+    }
+
+    /**
+     * Deactivate the plugin
+     */
+    public function deactivate() {
+        // Deactivation code here
     }
 }

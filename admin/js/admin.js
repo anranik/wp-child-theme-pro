@@ -186,11 +186,11 @@
             $('#save-custom-css').on('click', function() {
                 // Get CSS
                 var css = cssEditor.getValue();
-                var theme = $('#child-theme-select').val();
+                var theme = $('#child-theme-select').val() || wp.customize ? wp.customize.settings.theme.stylesheet : '';
                 
                 if (!theme) {
-                    alert('Please select a child theme.');
-                    return;
+                    // Get the current theme's stylesheet
+                    theme = wpchild_vars.current_theme || '';
                 }
                 
                 // Show loading
@@ -204,8 +204,8 @@
                     data: {
                         action: 'wpchild_save_custom_css',
                         nonce: wpchild_vars.nonce,
-                        theme: theme,
-                        css: css
+                        css: css,
+                        theme: theme
                     },
                     success: function(response) {
                         // Hide loading
@@ -245,11 +245,11 @@
             $('#save-custom-js').on('click', function() {
                 // Get JS
                 var js = jsEditor.getValue();
-                var theme = $('#child-theme-select').val();
+                var theme = $('#child-theme-select').val() || wp.customize ? wp.customize.settings.theme.stylesheet : '';
                 
                 if (!theme) {
-                    alert('Please select a child theme.');
-                    return;
+                    // Get the current theme's stylesheet
+                    theme = wpchild_vars.current_theme || '';
                 }
                 
                 // Show loading
@@ -263,8 +263,8 @@
                     data: {
                         action: 'wpchild_save_custom_js',
                         nonce: wpchild_vars.nonce,
-                        theme: theme,
-                        js: js
+                        js: js,
+                        theme: theme
                     },
                     success: function(response) {
                         // Hide loading

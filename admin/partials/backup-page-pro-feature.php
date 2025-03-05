@@ -111,7 +111,9 @@ if (!defined('ABSPATH')) {
                                         <td><?php echo esc_html($backup['date']); ?></td>
                                         <td><?php echo esc_html($backup['size']); ?></td>
                                         <td>
+                                            <a href="#" class="button wpchild-restore-backup" data-backup="<?php echo esc_attr($backup['file']); ?>" data-nonce="<?php echo wp_create_nonce('wpchild-nonce'); ?>"><?php _e('Restore', 'wp-child-theme-pro'); ?></a>
                                             <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=wp-child-theme-pro-backup&action=download&file=' . urlencode($backup['file'])), 'wpchild-download-' . $backup['file'], 'nonce'); ?>" class="button button-secondary"><?php _e('Download', 'wp-child-theme-pro'); ?></a>
+                                            <a href="#" class="button button-secondary wpchild-delete-backup" data-backup="<?php echo esc_attr($backup['file']); ?>" data-nonce="<?php echo wp_create_nonce('wpchild-nonce'); ?>"><?php _e('Delete', 'wp-child-theme-pro'); ?></a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
