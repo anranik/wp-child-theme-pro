@@ -75,6 +75,7 @@ if (!defined('ABSPATH')) {
                                 </th>
                                 <td>
                                     <textarea id="child_desc" name="child_desc" class="large-text" rows="3"><?php 
+                                        // translators: %s - describe the placeholder (e.g. the widget title)
                                         echo sprintf(esc_textarea(__('A child theme of the %s theme', 'wp-child-theme-pro')), 
                                                  $current_theme->get('Name')); 
                                     ?></textarea>

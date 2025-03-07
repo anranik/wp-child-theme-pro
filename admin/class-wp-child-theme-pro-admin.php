@@ -92,10 +92,10 @@ class WP_Child_Theme_Pro_Admin {
         wp_localize_script('wpchild-admin', 'wpchild_vars', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('wpchild-nonce'),
-            'generating' => __('Generating file list...', 'wp-child-theme-pro'),
-            'generating_error' => __('Error generating child theme. Please try again.', 'wp-child-theme-pro'),
-            'saving_error' => __('Error saving changes. Please try again.', 'wp-child-theme-pro'),
-            'confirm_delete' => __('Are you sure you want to delete this? This action cannot be undone.', 'wp-child-theme-pro'),
+            'generating' => esc_html__('Generating file list...', 'wp-child-theme-pro'),
+            'generating_error' => esc_html__('Error generating child theme. Please try again.', 'wp-child-theme-pro'),
+            'saving_error' => esc_html__('Error saving changes. Please try again.', 'wp-child-theme-pro'),
+            'confirm_delete' => esc_html__('Are you sure you want to delete this? This action cannot be undone.', 'wp-child-theme-pro'),
             'current_theme' => wp_get_theme()->get_stylesheet()
         ));
     }
@@ -105,8 +105,8 @@ class WP_Child_Theme_Pro_Admin {
      */
     public function add_admin_menu() {
         add_menu_page(
-            __('WP Child Theme Pro', 'wp-child-theme-pro'),
-            __('Child Theme Pro', 'wp-child-theme-pro'),
+            esc_html__('WP Child Theme Pro', 'wp-child-theme-pro'),
+            esc_html__('Child Theme Pro', 'wp-child-theme-pro'),
             'manage_options',
             'wp-child-theme-pro',
             array($this, 'display_main_page'),
@@ -116,8 +116,8 @@ class WP_Child_Theme_Pro_Admin {
         
         add_submenu_page(
             'wp-child-theme-pro',
-            __('Generate Child Theme', 'wp-child-theme-pro'),
-            __('Generate Child Theme', 'wp-child-theme-pro'),
+            esc_html__('Generate Child Theme', 'wp-child-theme-pro'),
+            esc_html__('Generate Child Theme', 'wp-child-theme-pro'),
             'manage_options',
             'wp-child-theme-pro',
             array($this, 'display_main_page')
@@ -125,8 +125,8 @@ class WP_Child_Theme_Pro_Admin {
         
         add_submenu_page(
             'wp-child-theme-pro',
-            __('Customize Child Theme', 'wp-child-theme-pro'),
-            __('Customize', 'wp-child-theme-pro'),
+            esc_html__('Customize Child Theme', 'wp-child-theme-pro'),
+            esc_html__('Customize', 'wp-child-theme-pro'),
             'manage_options',
             'wp-child-theme-pro-customize',
             array($this, 'display_customize_page')
@@ -134,8 +134,8 @@ class WP_Child_Theme_Pro_Admin {
         
         add_submenu_page(
             'wp-child-theme-pro',
-            __('Backup & Restore', 'wp-child-theme-pro'),
-            __('Backup & Restore', 'wp-child-theme-pro'),
+            esc_html__('Backup & Restore', 'wp-child-theme-pro'),
+            esc_html__('Backup & Restore', 'wp-child-theme-pro'),
             'manage_options',
             'wp-child-theme-pro-backup',
             array($this, 'display_backup_page')
@@ -143,8 +143,8 @@ class WP_Child_Theme_Pro_Admin {
         
         add_submenu_page(
             'wp-child-theme-pro',
-            __('Settings', 'wp-child-theme-pro'),
-            __('Settings', 'wp-child-theme-pro'),
+            esc_html__('Settings', 'wp-child-theme-pro'),
+            esc_html__('Settings', 'wp-child-theme-pro'),
             'manage_options',
             'wp-child-theme-pro-settings',
             array($this, 'display_settings_page')
@@ -159,14 +159,14 @@ class WP_Child_Theme_Pro_Admin {
         
         add_settings_section(
             'wp_child_theme_pro_general',
-            __('General Settings', 'wp-child-theme-pro'),
+            esc_html__('General Settings', 'wp-child-theme-pro'),
             array($this, 'settings_section_callback'),
             'wp_child_theme_pro_settings'
         );
         
         add_settings_field(
             'copy_parent_settings',
-            __('Copy Parent Settings', 'wp-child-theme-pro'),
+            esc_html__('Copy Parent Settings', 'wp-child-theme-pro'),
             array($this, 'copy_parent_settings_callback'),
             'wp_child_theme_pro_settings',
             'wp_child_theme_pro_general'
@@ -174,7 +174,7 @@ class WP_Child_Theme_Pro_Admin {
         
         add_settings_field(
             'auto_backup',
-            __('Auto Backup', 'wp-child-theme-pro'),
+            esc_html__('Auto Backup', 'wp-child-theme-pro'),
             array($this, 'auto_backup_callback'),
             'wp_child_theme_pro_settings',
             'wp_child_theme_pro_general'
@@ -182,7 +182,7 @@ class WP_Child_Theme_Pro_Admin {
         
         add_settings_field(
             'default_author',
-            __('Default Author', 'wp-child-theme-pro'),
+            esc_html__('Default Author', 'wp-child-theme-pro'),
             array($this, 'default_author_callback'),
             'wp_child_theme_pro_settings',
             'wp_child_theme_pro_general'
@@ -193,7 +193,7 @@ class WP_Child_Theme_Pro_Admin {
      * Settings section callback
      */
     public function settings_section_callback() {
-        echo '<p>' . __('Configure the default settings for WP Child Theme Pro.', 'wp-child-theme-pro') . '</p>';
+        echo '<p>' . esc_html__('Configure the default settings for WP Child Theme Pro.', 'wp-child-theme-pro') . '</p>';
     }
 
     /**
@@ -204,7 +204,7 @@ class WP_Child_Theme_Pro_Admin {
         $copy_parent_settings = isset($options['copy_parent_settings']) ? $options['copy_parent_settings'] : true;
         
         echo '<input type="checkbox" id="copy_parent_settings" name="wp_child_theme_pro_options[copy_parent_settings]" value="1" ' . checked(1, $copy_parent_settings, false) . '/>';
-        echo '<label for="copy_parent_settings">' . __('Copy parent theme settings when creating a child theme', 'wp-child-theme-pro') . '</label>';
+        echo '<label for="copy_parent_settings">' . esc_html__('Copy parent theme settings when creating a child theme', 'wp-child-theme-pro') . '</label>';
     }
 
     /**
@@ -215,7 +215,7 @@ class WP_Child_Theme_Pro_Admin {
         $auto_backup = isset($options['auto_backup']) ? $options['auto_backup'] : true;
         
         echo '<input type="checkbox" id="auto_backup" name="wp_child_theme_pro_options[auto_backup]" value="1" ' . checked(1, $auto_backup, false) . '/>';
-        echo '<label for="auto_backup">' . __('Automatically backup parent theme before creating a child theme', 'wp-child-theme-pro') . '</label>';
+        echo '<label for="auto_backup">' . esc_html__('Automatically backup parent theme before creating a child theme', 'wp-child-theme-pro') . '</label>';
     }
 
     /**
@@ -302,19 +302,19 @@ class WP_Child_Theme_Pro_Admin {
         if (isset($_POST['wpchild_export']) && isset($_POST['wpchild_export_nonce'])) {
             // Verify nonce
             if (!wp_verify_nonce($_POST['wpchild_export_nonce'], 'wpchild-export-nonce')) {
-                wp_die(__('Security check failed.', 'wp-child-theme-pro'));
+                wp_die(esc_html__('Security check failed.', 'wp-child-theme-pro'));
             }
             
             // Check permissions
             if (!current_user_can('manage_options')) {
-                wp_die(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+                wp_die(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
             }
             
             // Get theme to export
             $theme_to_export = isset($_POST['theme_to_export']) ? sanitize_text_field($_POST['theme_to_export']) : '';
             
             if (empty($theme_to_export)) {
-                add_settings_error('wpchild_export', 'wpchild-export-error', __('Please select a theme to export.', 'wp-child-theme-pro'), 'error');
+                add_settings_error('wpchild_export', 'wpchild-export-error', esc_html__('Please select a theme to export.', 'wp-child-theme-pro'), 'error');
                 return;
             }
             
@@ -340,17 +340,17 @@ class WP_Child_Theme_Pro_Admin {
         if (isset($_POST['wpchild_import']) && isset($_POST['wpchild_import_nonce'])) {
             // Verify nonce
             if (!wp_verify_nonce($_POST['wpchild_import_nonce'], 'wpchild-import-nonce')) {
-                wp_die(__('Security check failed.', 'wp-child-theme-pro'));
+                wp_die(esc_html__('Security check failed.', 'wp-child-theme-pro'));
             }
             
             // Check permissions
             if (!current_user_can('manage_options')) {
-                wp_die(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+                wp_die(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
             }
             
             // Check if file was uploaded
             if (!isset($_FILES['theme_zip']) || $_FILES['theme_zip']['error'] != UPLOAD_ERR_OK) {
-                add_settings_error('wpchild_import', 'wpchild-import-error', __('Error uploading file.', 'wp-child-theme-pro'), 'error');
+                add_settings_error('wpchild_import', 'wpchild-import-error', esc_html__('Error uploading file.', 'wp-child-theme-pro'), 'error');
                 return;
             }
             
@@ -386,12 +386,12 @@ class WP_Child_Theme_Pro_Admin {
         if (isset($_GET['page']) && $_GET['page'] == 'wp-child-theme-pro-backup' && isset($_GET['action']) && isset($_GET['file'])) {
             // Verify nonce
             if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'wpchild-download-' . $_GET['file'])) {
-                wp_die(__('Security check failed.', 'wp-child-theme-pro'));
+                wp_die(esc_html__('Security check failed.', 'wp-child-theme-pro'));
             }
             
             // Check permissions
             if (!current_user_can('manage_options')) {
-                wp_die(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+                wp_die(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
             }
             
             // Get backup file
@@ -400,7 +400,7 @@ class WP_Child_Theme_Pro_Admin {
             
             // Check if file exists
             if (!file_exists($backup_path)) {
-                wp_die(__('Backup file not found.', 'wp-child-theme-pro'));
+                wp_die(esc_html__('Backup file not found.', 'wp-child-theme-pro'));
             }
             
             // Send file to browser for download
@@ -422,21 +422,21 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get parent theme
         $parent_theme = isset($_POST['parent_theme']) ? sanitize_text_field($_POST['parent_theme']) : '';
         
         if (empty($parent_theme)) {
-            wp_send_json_error(__('Parent theme not specified.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Parent theme not specified.', 'wp-child-theme-pro'));
         }
         
         // Get parent theme files
         $files = $this->plugin->generator->get_parent_theme_files($parent_theme);
         
         if (empty($files)) {
-            wp_send_json_error(__('No files found in parent theme.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('No files found in parent theme.', 'wp-child-theme-pro'));
         }
         
         wp_send_json_success($files);
@@ -451,20 +451,20 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('switch_themes')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get theme
         $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : '';
         
         if (empty($theme)) {
-            wp_send_json_error(__('Theme not specified.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Theme not specified.', 'wp-child-theme-pro'));
         }
         
         // Switch theme
         switch_theme($theme);
         
-        wp_send_json_success(__('Theme activated successfully.', 'wp-child-theme-pro'));
+        wp_send_json_success(esc_html__('Theme activated successfully.', 'wp-child-theme-pro'));
     }
 
     /**
@@ -476,26 +476,26 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('delete_themes')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get theme
         $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : '';
         
         if (empty($theme)) {
-            wp_send_json_error(__('Theme not specified.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Theme not specified.', 'wp-child-theme-pro'));
         }
         
         // Check if theme is active
         if (get_stylesheet() == $theme) {
-            wp_send_json_error(__('Cannot delete the active theme.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Cannot delete the active theme.', 'wp-child-theme-pro'));
         }
         
         // Delete theme
         $theme_dir = get_theme_root() . '/' . $theme;
         
         if (!is_dir($theme_dir)) {
-            wp_send_json_error(__('Theme directory not found.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Theme directory not found.', 'wp-child-theme-pro'));
         }
         
         // Use WP_Filesystem
@@ -508,10 +508,10 @@ class WP_Child_Theme_Pro_Admin {
         WP_Filesystem();
         
         if (!$wp_filesystem->rmdir($theme_dir, true)) {
-            wp_send_json_error(__('Failed to delete theme.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Failed to delete theme.', 'wp-child-theme-pro'));
         }
         
-        wp_send_json_success(__('Theme deleted successfully.', 'wp-child-theme-pro'));
+        wp_send_json_success(esc_html__('Theme deleted successfully.', 'wp-child-theme-pro'));
     }
 
     /**
@@ -523,7 +523,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'wp-child-theme-pro')));
+            wp_send_json_error(array('message' => esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro')));
             return;
         }
         
@@ -531,7 +531,7 @@ class WP_Child_Theme_Pro_Admin {
         $backup_file = isset($_POST['backup_file']) ? sanitize_text_field($_POST['backup_file']) : '';
         
         if (empty($backup_file)) {
-            wp_send_json_error(array('message' => __('Backup file not specified.', 'wp-child-theme-pro')));
+            wp_send_json_error(array('message' => esc_html__('Backup file not specified.', 'wp-child-theme-pro')));
             return;
         }
         
@@ -543,7 +543,7 @@ class WP_Child_Theme_Pro_Admin {
             return;
         }
         
-        wp_send_json_success(array('message' => __('Backup deleted successfully.', 'wp-child-theme-pro')));
+        wp_send_json_success(array('message' => esc_html__('Backup deleted successfully.', 'wp-child-theme-pro')));
     }
 
     /**
@@ -555,7 +555,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'wp-child-theme-pro')));
+            wp_send_json_error(array('message' => esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro')));
             return;
         }
         
@@ -563,7 +563,7 @@ class WP_Child_Theme_Pro_Admin {
         $backup_file = isset($_POST['backup_file']) ? sanitize_text_field($_POST['backup_file']) : '';
         
         if (empty($backup_file)) {
-            wp_send_json_error(array('message' => __('Backup file not specified.', 'wp-child-theme-pro')));
+            wp_send_json_error(array('message' => esc_html__('Backup file not specified.', 'wp-child-theme-pro')));
             return;
         }
         
@@ -575,7 +575,7 @@ class WP_Child_Theme_Pro_Admin {
             return;
         }
         
-        wp_send_json_success(array('message' => __('Backup restored successfully.', 'wp-child-theme-pro')));
+        wp_send_json_success(array('message' => esc_html__('Backup restored successfully.', 'wp-child-theme-pro')));
     }
 
     /**
@@ -587,22 +587,22 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get theme
         $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : '';
         
         if (empty($theme)) {
-            wp_send_json_error(__('Theme not specified.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Theme not specified.', 'wp-child-theme-pro'));
         }
         
         // Backup theme
         if (!$this->plugin->backup->backup_theme($theme)) {
-            wp_send_json_error(__('Failed to backup theme.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Failed to backup theme.', 'wp-child-theme-pro'));
         }
         
-        wp_send_json_success(__('Theme backed up successfully.', 'wp-child-theme-pro'));
+        wp_send_json_success(esc_html__('Theme backed up successfully.', 'wp-child-theme-pro'));
     }
 
     /**
@@ -614,14 +614,14 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_die(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get backup file
         $backup_file = isset($_GET['backup_file']) ? sanitize_text_field($_GET['backup_file']) : '';
         
         if (empty($backup_file)) {
-            wp_die(__('Backup file not specified.', 'wp-child-theme-pro'));
+            wp_die(esc_html__('Backup file not specified.', 'wp-child-theme-pro'));
         }
         
         // Get file path
@@ -629,7 +629,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check if file exists
         if (!file_exists($file_path)) {
-            wp_die(__('Backup file not found.', 'wp-child-theme-pro'));
+            wp_die(esc_html__('Backup file not found.', 'wp-child-theme-pro'));
         }
         
         // Send file to browser for download
@@ -651,14 +651,14 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get parent theme
         $parent_theme = isset($_POST['parent_theme']) ? sanitize_text_field($_POST['parent_theme']) : '';
         
         if (empty($parent_theme)) {
-            wp_send_json_error(__('Parent theme not specified.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Parent theme not specified.', 'wp-child-theme-pro'));
         }
         
         // Get child theme details
@@ -669,7 +669,7 @@ class WP_Child_Theme_Pro_Admin {
         $copy_settings = isset($_POST['copy_settings']) ? (bool) $_POST['copy_settings'] : false;
         
         if (empty($child_name)) {
-            wp_send_json_error(__('Child theme name not specified.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Child theme name not specified.', 'wp-child-theme-pro'));
         }
         
         // Get selected files
@@ -692,7 +692,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Return success
         wp_send_json_success(array(
-            'message' => __('Child theme generated successfully.', 'wp-child-theme-pro'),
+            'message' => esc_html__('Child theme generated successfully.', 'wp-child-theme-pro'),
             'child_theme' => $result
         ));
     }
@@ -706,7 +706,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get CSS content
@@ -740,10 +740,10 @@ class WP_Child_Theme_Pro_Admin {
         
         // Write CSS to file
         if (!$wp_filesystem->put_contents($css_file, $css)) {
-            wp_send_json_error(__('Failed to save CSS file.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Failed to save CSS file.', 'wp-child-theme-pro'));
         }
         
-        wp_send_json_success(__('CSS saved successfully.', 'wp-child-theme-pro'));
+        wp_send_json_success(esc_html__('CSS saved successfully.', 'wp-child-theme-pro'));
     }
     
     /**
@@ -755,7 +755,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get JS content
@@ -789,10 +789,10 @@ class WP_Child_Theme_Pro_Admin {
         
         // Write JS to file
         if (!$wp_filesystem->put_contents($js_file, $js)) {
-            wp_send_json_error(__('Failed to save JS file.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('Failed to save JS file.', 'wp-child-theme-pro'));
         }
         
-        wp_send_json_success(__('JS saved successfully.', 'wp-child-theme-pro'));
+        wp_send_json_success(esc_html__('JS saved successfully.', 'wp-child-theme-pro'));
     }
     
     /**
@@ -804,7 +804,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get theme - either provided or current theme
@@ -845,7 +845,7 @@ class WP_Child_Theme_Pro_Admin {
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
+            wp_send_json_error(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
         }
         
         // Get theme - either provided or current theme

@@ -325,7 +325,9 @@ class WP_Child_Theme_Generator {
             
             ?>
             <div class="notice notice-success is-dismissible">
-                <p><?php printf(esc_html__('Child theme "%s" has been created and activated successfully!', 'wp-child-theme-pro'), $theme_name); ?></p>
+                <p><?php 
+                // translators: %s - describe the placeholder (e.g. the generated theme name)
+                printf(esc_html__('Child theme "%s" has been created and activated successfully!', 'wp-child-theme-pro'), $theme_name); ?></p>
             </div>
             <?php
         }

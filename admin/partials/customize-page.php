@@ -54,12 +54,18 @@ $has_child_theme = $is_child_theme || !empty($child_themes);
                     
                     <?php if ($is_child_theme) : ?>
                     <div class="wpchild-active-theme">
-                        <h3><?php printf(__('Active Child Theme: %s', 'wp-child-theme-pro'), $current_theme->get('Name')); ?></h3>
-                        <p><?php printf(__('Parent Theme: %s', 'wp-child-theme-pro'), $current_theme->parent()->get('Name')); ?></p>
+                        <h3><?php 
+                        // translators: %s - the name of the active child theme
+                        printf(__('Active Child Theme: %s', 'wp-child-theme-pro'), $current_theme->get('Name')); ?></h3>
+                        <p><?php 
+                        // translators: %s - the name of the parent theme
+                        printf(__('Parent Theme: %s', 'wp-child-theme-pro'), $current_theme->parent()->get('Name')); ?></p>
                     </div>
                     <?php else : ?>
                     <div class="wpchild-active-theme">
-                        <h3><?php printf(__('Active Theme: %s', 'wp-child-theme-pro'), $current_theme->get('Name')); ?></h3>
+                        <h3><?php 
+                        // translators: %s - the name of the active theme
+                        printf(__('Active Theme: %s', 'wp-child-theme-pro'), $current_theme->get('Name')); ?></h3>
                         <p class="description"><?php _e('Note: This is not a child theme. Your customizations may be lost during theme updates.', 'wp-child-theme-pro'); ?></p>
                     </div>
                     <?php endif; ?>
