@@ -77,12 +77,12 @@ class WP_Child_Theme_Pro_Admin {
         
         // Enqueue CodeMirror if on the customize page
         if (strpos($hook, 'wp-child-theme-pro-customize') !== false) {
-            wp_enqueue_style('code-mirror', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css', array(), '5.62.0');
-            wp_enqueue_style('code-mirror-theme', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/theme/monokai.min.css', array(), '5.62.0');
+            wp_enqueue_style('code-mirror', WPCHILD_PLUGIN_URL . 'admin/css/codemirror.min.css', array(), '5.62.0');
+            wp_enqueue_style('code-mirror-theme', WPCHILD_PLUGIN_URL . 'admin/css/monokai.min.css', array(), '5.62.0');
             
-            wp_enqueue_script('code-mirror', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js', array('jquery'), '5.62.0', true);
-            wp_enqueue_script('code-mirror-css', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/css/css.min.js', array('code-mirror'), '5.62.0', true);
-            wp_enqueue_script('code-mirror-js', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/javascript/javascript.min.js', array('code-mirror'), '5.62.0', true);
+            wp_enqueue_script('code-mirror', WPCHILD_PLUGIN_URL . 'admin/js/codemirror.min.js', array('jquery'), '5.62.0', true);
+            wp_enqueue_script('code-mirror-css', WPCHILD_PLUGIN_URL . 'admin/js/css.min.js', array('code-mirror'), '5.62.0', true);
+            wp_enqueue_script('code-mirror-js', WPCHILD_PLUGIN_URL . 'admin/js/javascript.min.js', array('code-mirror'), '5.62.0', true);
         }
         
         // Enqueue admin script
@@ -98,6 +98,10 @@ class WP_Child_Theme_Pro_Admin {
             'confirm_delete' => esc_html__('Are you sure you want to delete this? This action cannot be undone.', 'wp-child-theme-pro'),
             'current_theme' => wp_get_theme()->get_stylesheet()
         ));
+
+        // Replace external resources with local resources
+        wp_enqueue_style('local-style', plugins_url('css/local-style.css', __FILE__));
+        wp_enqueue_script('local-script', plugins_url('js/local-script.js', __FILE__));
     }
 
     /**
@@ -155,7 +159,9 @@ class WP_Child_Theme_Pro_Admin {
      * Register settings
      */
     public function register_settings() {
-        register_setting('wp_child_theme_pro_options', 'wp_child_theme_pro_options');
+        register_setting('wp_child_theme_pro_options', 'wp_child_theme_pro_options', array(
+            'sanitize_callback' => array($this, 'sanitize_options')
+        ));
         
         add_settings_section(
             'wp_child_theme_pro_general',
@@ -187,6 +193,23 @@ class WP_Child_Theme_Pro_Admin {
             'wp_child_theme_pro_settings',
             'wp_child_theme_pro_general'
         );
+    }
+
+    /**
+     * Sanitize options
+     */
+    public function sanitize_options($options) {
+        $sanitized_options = array();
+        if (isset($options['copy_parent_settings'])) {
+            $sanitized_options['copy_parent_settings'] = absint($options['copy_parent_settings']);
+        }
+        if (isset($options['auto_backup'])) {
+            $sanitized_options['auto_backup'] = absint($options['auto_backup']);
+        }
+        if (isset($options['default_author'])) {
+            $sanitized_options['default_author'] = sanitize_text_field($options['default_author']);
+        }
+        return $sanitized_options;
     }
 
     /**
@@ -300,8 +323,11 @@ class WP_Child_Theme_Pro_Admin {
     public function process_export_import() {
         // Process theme export
         if (isset($_POST['wpchild_export']) && isset($_POST['wpchild_export_nonce'])) {
+            // Sanitize $_POST['wpchild_export_nonce']
+            $wpchild_export_nonce = isset($_POST['wpchild_export_nonce']) ? sanitize_text_field(wp_unslash($_POST['wpchild_export_nonce'])) : '';
+
             // Verify nonce
-            if (!wp_verify_nonce(wp_unslash($_POST['wpchild_export_nonce']), 'wpchild-export-nonce')) {
+            if (!wp_verify_nonce($wpchild_export_nonce, 'wpchild-export-nonce')) {
                 wp_die(esc_html__('Security check failed.', 'wp-child-theme-pro'));
             }
             
@@ -310,12 +336,13 @@ class WP_Child_Theme_Pro_Admin {
                 wp_die(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
             }
             
-            // Get theme to export
-            $theme_to_export = sanitize_text_field(wp_unslash($_POST['theme_to_export']));
-            
-            if (empty($theme_to_export)) {
-                add_settings_error('wpchild_export', 'wpchild-export-error', esc_html__('Please select a theme to export.', 'wp-child-theme-pro'), 'error');
-                return;
+            // Validate $_POST['theme_to_export']
+            if (isset($_POST['theme_to_export'])) {
+                $theme_to_export = sanitize_text_field(wp_unslash($_POST['theme_to_export']));
+                if (empty($theme_to_export)) {
+                    add_settings_error('wpchild_export', 'wpchild-export-error', esc_html__('Please select a theme to export.', 'wp-child-theme-pro'), 'error');
+                    return;
+                }
             }
             
             // Export theme
@@ -337,14 +364,17 @@ class WP_Child_Theme_Pro_Admin {
             header('Content-Length: ' . filesize($result));
             header('Pragma: no-cache');
             header('Expires: 0');
-            readfile($result);
+            $wp_filesystem->get_contents($result);
             exit;
         }
         
         // Process theme import
         if (isset($_POST['wpchild_import']) && isset($_POST['wpchild_import_nonce'])) {
+            // Sanitize $_POST['wpchild_import_nonce']
+            $wpchild_import_nonce = isset($_POST['wpchild_import_nonce']) ? sanitize_text_field(wp_unslash($_POST['wpchild_import_nonce'])) : '';
+
             // Verify nonce
-            if (!wp_verify_nonce(wp_unslash($_POST['wpchild_import_nonce']), 'wpchild-import-nonce')) {
+            if (!wp_verify_nonce($wpchild_import_nonce, 'wpchild-import-nonce')) {
                 wp_die(esc_html__('Security check failed.', 'wp-child-theme-pro'));
             }
             
@@ -353,31 +383,32 @@ class WP_Child_Theme_Pro_Admin {
                 wp_die(esc_html__('You do not have permission to perform this action.', 'wp-child-theme-pro'));
             }
             
-            // Check if file was uploaded
-            if (isset($_FILES['theme_zip']['error']) && UPLOAD_ERR_OK === $_FILES['theme_zip']['error']) {
-                $tmp_name = sanitize_file_name(wp_unslash($_FILES['theme_zip']['tmp_name']));
-                
-                // Import theme from uploaded file
-                $uploaded_file = $_FILES['theme_zip']['tmp_name'];
-                
-                // Copy file to backups directory temporarily
-                $temp_file = $this->plugin->backup->backup_dir . 'temp-import-' . time() . '.zip';
-                move_uploaded_file($tmp_name, $temp_file);
-                
-                // Process import
-                $result = $this->plugin->backup->import_theme($temp_file);
-                
-                // Delete temporary file
-                unlink($temp_file);
-                
-                if (is_wp_error($result)) {
-                    add_settings_error('wpchild_import', 'wpchild-import-error', $result->get_error_message(), 'error');
-                    return;
+            // Validate $_FILES['theme_zip']['tmp_name']
+            if (isset($_FILES['theme_zip']['tmp_name'])) {
+                $theme_zip_tmp_name = sanitize_text_field($_FILES['theme_zip']['tmp_name']);
+                if (isset($_FILES['theme_zip']['error']) && UPLOAD_ERR_OK === $_FILES['theme_zip']['error']) {
+                    // Import theme from uploaded file
+                    $uploaded_file = $_FILES['theme_zip']['tmp_name'];
+                    
+                    // Copy file to backups directory temporarily
+                    $temp_file = $this->plugin->backup->backup_dir . 'temp-import-' . time() . '.zip';
+                    $wp_filesystem->move($theme_zip_tmp_name, $temp_file);
+                    
+                    // Process import
+                    $result = $this->plugin->backup->import_theme($temp_file);
+                    
+                    // Delete temporary file
+                    wp_delete_file($temp_file);
+                    
+                    if (is_wp_error($result)) {
+                        add_settings_error('wpchild_import', 'wpchild-import-error', $result->get_error_message(), 'error');
+                        return;
+                    }
+                    
+                    // Redirect to themes page
+                    wp_redirect(admin_url('themes.php'));
+                    exit;
                 }
-                
-                // Redirect to themes page
-                wp_redirect(admin_url('themes.php'));
-                exit;
             }
         }
     }
@@ -388,8 +419,12 @@ class WP_Child_Theme_Pro_Admin {
     public function handle_backup_actions() {
         // Check for backup actions
         if (isset($_GET['page']) && $_GET['page'] == 'wp-child-theme-pro-backup' && isset($_GET['action']) && isset($_GET['file'])) {
+            // Sanitize $_GET['nonce'] and $_GET['file'], and use wp_unslash() for $_GET['file']
+            $nonce = isset($_GET['nonce']) ? sanitize_text_field(wp_unslash($_GET['nonce'])) : '';
+            $file = isset($_GET['file']) ? sanitize_text_field(wp_unslash($_GET['file'])) : '';
+
             // Verify nonce
-            if (!isset($_GET['nonce']) || !wp_verify_nonce(wp_unslash($_GET['nonce']), 'wpchild-download-' . $_GET['file'])) {
+            if (!isset($nonce) || !wp_verify_nonce($nonce, 'wpchild-download-' . $file)) {
                 wp_die(esc_html__('Security check failed.', 'wp-child-theme-pro'));
             }
             
@@ -399,7 +434,7 @@ class WP_Child_Theme_Pro_Admin {
             }
             
             // Get backup file
-            $backup_file = sanitize_file_name(wp_unslash($_GET['file']));
+            $backup_file = sanitize_file_name($file);
             $backup_path = $this->plugin->backup->backup_dir . '/' . $backup_file;
             
             // Check if file exists
@@ -417,7 +452,7 @@ class WP_Child_Theme_Pro_Admin {
             header('Content-Disposition: attachment; filename=' . $backup_file);
             header('Content-Length: ' . filesize($backup_path));
             header('Pragma: no-cache');
-            readfile($backup_path);
+            $wp_filesystem->get_contents($backup_path);
             exit;
         }
     }
@@ -666,7 +701,7 @@ class WP_Child_Theme_Pro_Admin {
         header('Content-Length: ' . filesize($file_path));
         header('Pragma: no-cache');
         header('Expires: 0');
-        readfile($file_path);
+        $wp_filesystem->get_contents($file_path);
         exit;
     }
 

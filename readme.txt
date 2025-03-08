@@ -1,4 +1,5 @@
-=== WP Child Theme Pro ===
+# WP Child Theme Pro
+
 Contributors: yourname
 Tags: child theme, theme, customize
 Requires at least: 5.0
@@ -51,4 +52,4 @@ Yes, you can create a child theme for any WordPress theme that follows the WordP
 == Upgrade Notice ==
 
 = 1.0.0 =
-Initial release 
+Initial release

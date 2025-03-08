@@ -46,7 +46,7 @@ class WP_Child_Theme_Backup {
         }
         
         // Create backup filename (uses timestamp to ensure uniqueness)
-        $backup_filename = $theme_slug . '-' . date('YmdHis') . '.zip';
+        $backup_filename = $theme_slug . '-' . gmdate('YmdHis') . '.zip';
         $backup_filepath = $this->backup_dir . $backup_filename;
         
         // Check if ZipArchive class exists
@@ -131,7 +131,12 @@ class WP_Child_Theme_Backup {
         $themes_dir = get_theme_root();
         
         // Check if themes directory is writable
-        if (!is_writable($themes_dir)) {
+        global $wp_filesystem;
+        if ( ! function_exists( 'WP_Filesystem' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        WP_Filesystem();
+        if ( ! $wp_filesystem->is_writable($themes_dir) ) {
             $zip->close();
             return new WP_Error('themes_dir_not_writable', __('The themes directory is not writable.', 'wp-child-theme-pro'));
         }
@@ -171,7 +176,7 @@ class WP_Child_Theme_Backup {
         }
         
         // Delete file
-        if (!unlink($backup_path)) {
+        if (!wp_delete_file($backup_path)) {
             return new WP_Error('delete_failed', __('Failed to delete backup file.', 'wp-child-theme-pro'));
         }
         
@@ -218,11 +223,16 @@ class WP_Child_Theme_Backup {
             if (is_dir($path)) {
                 $this->delete_theme_directory($path);
             } else {
-                unlink($path);
+                wp_delete_file($path);
             }
         }
         
-        return rmdir($dir);
+        global $wp_filesystem;
+        if ( ! function_exists( 'WP_Filesystem' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        WP_Filesystem();
+        return $wp_filesystem->rmdir($dir);
     }
 
     /**
@@ -298,7 +308,7 @@ class WP_Child_Theme_Backup {
         }
         
         // Create export filename (uses timestamp to ensure uniqueness)
-        $export_filename = $theme_slug . '-export-' . date('YmdHis') . '.zip';
+        $export_filename = $theme_slug . '-export-' . gmdate('YmdHis') . '.zip';
         $export_filepath = $this->backup_dir . $export_filename;
         
         // Get theme directory

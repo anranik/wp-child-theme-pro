@@ -1,16 +1,16 @@
 <?php
 /**
  * Plugin Name: WP Child Theme Pro
- * Plugin URI: https://owlpixel.com/wp-child-theme-pro
- * Description: A powerful WordPress plugin to generate and manage child themes with extensive customization options.
+ * Plugin URI: https://example.com/wp-child-theme-pro
+ * Description: A plugin to manage child themes.
  * Version: 1.0.0
- * Author: Md Anowar Hossen
- * Author URI: https://owlpixel.com
+ * Author: Your Name
+ * Author URI: https://example.com
+ * License: GPL2
  * Text Domain: wp-child-theme-pro
  * Domain Path: /languages
  * Requires at least: 5.2
  * Requires PHP: 7.2
- * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 

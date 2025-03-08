@@ -137,7 +137,7 @@ $has_child_theme = $is_child_theme || !empty($child_themes);
                     <h2><?php esc_html_e('Theme Preview', 'wp-child-theme-pro'); ?></h2>
                     <div class="theme-preview">
                         <?php if ($current_theme->get_screenshot()) : ?>
-                            <img src="<?php echo esc_url($current_theme->get_screenshot()); ?>" alt="<?php echo esc_attr($current_theme->get('Name')); ?>" />
+                            <?php echo wp_get_attachment_image($attachment_id, 'full'); ?>
                         <?php else : ?>
                             <div class="no-screenshot"><?php esc_html_e('No screenshot available', 'wp-child-theme-pro'); ?></div>
                         <?php endif; ?>

@@ -78,7 +78,6 @@ class WP_Child_Theme_Generator {
         
         // Create child theme directory
         if (!$wp_filesystem->mkdir($child_dir)) {
-            error_log('WP Child Theme Pro: Failed to create directory at ' . $child_dir);
             return new WP_Error('mkdir_failed', __('Failed to create child theme directory.', 'wp-child-theme-pro'));
         }
         
@@ -100,7 +99,6 @@ class WP_Child_Theme_Generator {
         
         $style_css = trailingslashit($child_dir) . 'style.css';
         if (!$wp_filesystem->put_contents($style_css, $css_content, FS_CHMOD_FILE)) {
-            error_log('WP Child Theme Pro: Failed to write to file ' . $style_css);
             // Clean up
             $this->delete_theme($child_slug);
             return new WP_Error('css_failed', __('Failed to create style.css.', 'wp-child-theme-pro'));
@@ -225,7 +223,6 @@ class WP_Child_Theme_Generator {
         
         $functions_php = trailingslashit($child_dir) . 'functions.php';
         if (!$wp_filesystem->put_contents($functions_php, $functions_content, FS_CHMOD_FILE)) {
-            error_log('WP Child Theme Pro: Failed to write to file ' . $functions_php);
             // Clean up
             $this->delete_theme($child_slug);
             return new WP_Error('functions_failed', __('Failed to create functions.php.', 'wp-child-theme-pro'));
@@ -240,11 +237,11 @@ class WP_Child_Theme_Generator {
         $css_dir = trailingslashit($assets_dir) . 'css';
         
         if (!$wp_filesystem->mkdir($assets_dir)) {
-            error_log('WP Child Theme Pro: Failed to create assets directory');
+            return new WP_Error('mkdir_failed', __('Failed to create assets directory.', 'wp-child-theme-pro'));
         }
         
         if (!$wp_filesystem->mkdir($js_dir)) {
-            error_log('WP Child Theme Pro: Failed to create js directory');
+            return new WP_Error('mkdir_failed', __('Failed to create js directory.', 'wp-child-theme-pro'));
         } else {
             // Create mytheme.js
             $js_content = "/**\n";
@@ -261,7 +258,7 @@ class WP_Child_Theme_Generator {
         }
         
         if (!$wp_filesystem->mkdir($css_dir)) {
-            error_log('WP Child Theme Pro: Failed to create css directory');
+            return new WP_Error('mkdir_failed', __('Failed to create css directory.', 'wp-child-theme-pro'));
         } else {
             // Create mytheme.css
             $mytheme_css_content = "/**\n";
@@ -490,11 +487,16 @@ class WP_Child_Theme_Generator {
             if (is_dir("$dir/$file")) {
                 $this->recursive_delete("$dir/$file");
             } else {
-                unlink("$dir/$file");
+                wp_delete_file("$dir/$file");
             }
         }
         
-        rmdir($dir);
+        global $wp_filesystem;
+        if ( ! function_exists( 'WP_Filesystem' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        WP_Filesystem();
+        $wp_filesystem->rmdir($dir);
     }
 
     /**
