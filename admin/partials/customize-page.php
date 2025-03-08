@@ -136,11 +136,20 @@ $has_child_theme = $is_child_theme || !empty($child_themes);
                 <div class="wpchild-card">
                     <h2><?php esc_html_e('Theme Preview', 'wp-child-theme-pro'); ?></h2>
                     <div class="theme-preview">
-                        <?php if ($current_theme->get_screenshot()) : ?>
-                            <?php echo wp_get_attachment_image($attachment_id, 'full'); ?>
-                        <?php else : ?>
-                            <div class="no-screenshot"><?php esc_html_e('No screenshot available', 'wp-child-theme-pro'); ?></div>
-                        <?php endif; ?>
+                   
+                        <?php 
+                        // Get the current theme directory
+                        $theme_dir = get_stylesheet_directory();
+                        $screenshot = $theme_dir . '/screenshot.png';
+
+                        // Check if the screenshot file exists
+                        if (file_exists($screenshot)) {
+                            $screenshot_url = get_stylesheet_directory_uri() . '/screenshot.png';
+                            echo '<img src="' . esc_url($screenshot_url) . '" alt="Theme Preview" />';
+                        } else {
+                            echo '<p>' . esc_html__('Current theme does not have any screenshot.png', 'wp-child-theme-pro') . '</p>';
+                        }
+                        ?>
                     </div>
                 </div>
                 
